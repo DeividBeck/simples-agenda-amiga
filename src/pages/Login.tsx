@@ -8,6 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 
+// URL da API de autenticação baseada no ambiente
+const AUTH_API_URL = import.meta.env.PROD 
+  ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/LogIn'  // Produção
+  : 'http://localhost:3001/api/auth/login';  // Desenvolvimento (ajuste conforme sua API local)
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -44,7 +49,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch('https://api.ecclesia.app.br/autenticacao/api/Autenticacao/LogIn', {
+      const response = await fetch(AUTH_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
