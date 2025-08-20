@@ -9,9 +9,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 
 // URL da API de autenticação baseada no ambiente
-const AUTH_API_URL = import.meta.env.PROD 
+const AUTH_API_URL = import.meta.env.PROD
   ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/LogIn'  // Produção
-  : 'http://localhost:3001/api/auth/login';  // Desenvolvimento (ajuste conforme sua API local)
+  : 'https://localhost:7208/api/Autenticacao/LogIn';  // Desenvolvimento (ajuste conforme sua API local)
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
@@ -95,7 +96,7 @@ export default function Login() {
       }
 
       const data = await response.json();
-      
+
       // Verificar se o token foi retornado
       if (data.token) {
         localStorage.setItem('authToken', data.token);
@@ -111,7 +112,7 @@ export default function Login() {
 
     } catch (error) {
       console.error('Erro no login:', error);
-      
+
       // Tratamento específico para diferentes tipos de erro
       if (error instanceof TypeError && error.message.includes('fetch')) {
         setError('Erro de conexão. Verifique sua internet e tente novamente');
@@ -145,7 +146,7 @@ export default function Login() {
             Faça login para acessar o sistema
           </p>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
@@ -155,7 +156,7 @@ export default function Login() {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -171,7 +172,7 @@ export default function Login() {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="senha">Senha</Label>
               <div className="relative">
@@ -200,10 +201,10 @@ export default function Login() {
                 </Button>
               </div>
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full transition-all duration-200" 
+
+            <Button
+              type="submit"
+              className="w-full transition-all duration-200"
               disabled={isLoading || !email || !senha}
             >
               {isLoading ? (
