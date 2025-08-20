@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Settings, List, Filter, Menu, MapPin, Users, Building2, Loader, Share2, Lock } from 'lucide-react';
+import { Calendar, Plus, Settings, List, Filter, Menu, MapPin, Users, Building2, Loader, Share2, Lock, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -38,7 +38,7 @@ export const Dashboard = () => {
   const [createEventDate, setCreateEventDate] = useState<Date | undefined>(undefined);
   const [createSalaDate, setCreateSalaDate] = useState<Date | undefined>(undefined);
 
-  const { token, filiais, filialSelecionada, setFilialSelecionada, tokenData, isAuthenticated, isChangingFilial } = useAuth();
+  const { token, filiais, filialSelecionada, setFilialSelecionada, tokenData, isAuthenticated, isChangingFilial, logout } = useAuth();
   const { canReadEventos, canCreateEventos, canEditEventos, canReadSalas, canCreateSalas } = useClaims();
   const { toast } = useToast();
 
@@ -283,6 +283,17 @@ export const Dashboard = () => {
               Sem permissão para criar salas
             </Button>
           )}
+
+          <div className="pt-4 border-t">
+            <Button
+              onClick={logout}
+              variant="outline"
+              className="w-full text-red-600 border-red-200 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair do Sistema
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -409,6 +420,16 @@ export const Dashboard = () => {
                   Sem permissão para salas
                 </Button>
               )}
+
+              <Button
+                onClick={logout}
+                size="sm"
+                variant="outline"
+                className="bg-white/70 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
             </div>
 
             {/* Mobile Actions */}
