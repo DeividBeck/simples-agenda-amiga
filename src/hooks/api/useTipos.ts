@@ -73,5 +73,45 @@ export const useCreateTipoDeSala = () => {
   });
 };
 
-// REMOVIDO: hooks de atualização e exclusão de tipos conforme solicitado
-// Apenas leitura e criação para tipos de eventos e tipos de salas
+// Hook para atualizar tipo de sala
+export const useUpdateTipoDeSala = () => {
+  const queryClient = useQueryClient();
+  const { token, filialSelecionada } = useAuth();
+  const { canEditTiposSalas } = useClaims();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: TipoDeSala }) => {
+      if (!canEditTiposSalas()) {
+        throw new Error('Você não tem permissão para editar tipos de salas');
+      }
+      return fetchApi(`/${filialSelecionada}/TiposDeSalas/${id}`, token, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tiposDeSalas', filialSelecionada] });
+    },
+  });
+};
+
+// Hook para deletar tipo de sala
+export const useDeleteTipoDeSala = () => {
+  const queryClient = useQueryClient();
+  const { token, filialSelecionada } = useAuth();
+  const { canDeleteTiposSalas } = useClaims();
+  
+  return useMutation({
+    mutationFn: (id: number) => {
+      if (!canDeleteTiposSalas()) {
+        throw new Error('Você não tem permissão para excluir tipos de salas');
+      }
+      return fetchApi(`/${filialSelecionada}/TiposDeSalas/${id}`, token, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tiposDeSalas', filialSelecionada] });
+    },
+  });
+};

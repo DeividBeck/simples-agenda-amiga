@@ -53,9 +53,11 @@ export const useClaims = () => {
   const canReadTiposEventos = () => hasCalendarioClaim('TipoEventoLer');
   const canCreateTiposEventos = () => hasCalendarioClaim('TipoEventoCriar');
 
-  // Claims para tipos de salas - CORRIGIDO: apenas leitura e criação
+  // Claims para tipos de salas - Adicionando edição e exclusão
   const canReadTiposSalas = () => hasCalendarioClaim('TipoSalaLer');
   const canCreateTiposSalas = () => hasCalendarioClaim('TipoSalaCriar');
+  const canEditTiposSalas = () => hasCalendarioClaim('TipoSalaEditar');
+  const canDeleteTiposSalas = () => hasCalendarioClaim('TipoSalaExcluir');
 
   return {
     getClaims,
@@ -71,6 +73,8 @@ export const useClaims = () => {
     canReadTiposEventos,
     canCreateTiposEventos,
     canReadTiposSalas,
-    canCreateTiposSalas
+    canCreateTiposSalas,
+    canEditTiposSalas,
+    canDeleteTiposSalas
   };
 };

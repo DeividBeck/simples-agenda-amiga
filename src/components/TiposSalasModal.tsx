@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, MapPin, Wrench, Building, Lock } from 'lucide-react';
+import { Plus, MapPin, Wrench, Building, Lock, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,10 +12,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ColorSelector } from './ColorSelector';
-import { useTiposDeSalas, useCreateTipoDeSala } from '@/hooks/useApi';
+import { EditTipoDeSalaModal } from './EditTipoDeSalaModal';
+import { useTiposDeSalas, useCreateTipoDeSala, useDeleteTipoDeSala } from '@/hooks/useApi';
 import { useClaims } from '@/hooks/useClaims';
 import { useToast } from '@/hooks/use-toast';
+import { TipoDeSala } from '@/types/api';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -35,12 +39,15 @@ interface TiposSalasModalProps {
 
 export const TiposSalasModal: React.FC<TiposSalasModalProps> = ({ isOpen, onClose }) => {
   const [showForm, setShowForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTipoDeSala, setSelectedTipoDeSala] = useState<TipoDeSala | null>(null);
   const [equipamentos, setEquipamentos] = useState<string[]>([]);
   const [novoEquipamento, setNovoEquipamento] = useState('');
   const { toast } = useToast();
-  const { canReadTiposSalas, canCreateTiposSalas } = useClaims();
+  const { canReadTiposSalas, canCreateTiposSalas, canEditTiposSalas, canDeleteTiposSalas } = useClaims();
   const { data: tiposDeSalas, isLoading } = useTiposDeSalas();
   const createTipoDeSala = useCreateTipoDeSala();
+  const deleteTipoDeSala = useDeleteTipoDeSala();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -95,8 +102,31 @@ export const TiposSalasModal: React.FC<TiposSalasModalProps> = ({ isOpen, onClos
     }
   };
 
+  const handleEditTipoDeSala = (tipoDeSala: TipoDeSala) => {
+    setSelectedTipoDeSala(tipoDeSala);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteTipoDeSala = async (id: number, nome: string) => {
+    try {
+      await deleteTipoDeSala.mutateAsync(id);
+      toast({
+        title: 'Tipo de sala excluído',
+        description: `O tipo "${nome}" foi excluído com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao excluir',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro ao tentar excluir o tipo de sala.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleClose = () => {
     setShowForm(false);
+    setShowEditModal(false);
+    setSelectedTipoDeSala(null);
     form.reset();
     setEquipamentos([]);
     onClose();
@@ -371,16 +401,64 @@ export const TiposSalasModal: React.FC<TiposSalasModalProps> = ({ isOpen, onClos
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tiposDeSalas?.map(sala => (
-                  <Card key={sala.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div 
-                          className="w-6 h-6 rounded-full"
-                          style={{ backgroundColor: sala.cor }}
-                        />
-                        <h4 className="font-semibold text-gray-800">{sala.nome}</h4>
-                      </div>
+                 {tiposDeSalas?.map(sala => (
+                   <Card key={sala.id} className="hover:shadow-md transition-shadow">
+                     <CardContent className="p-6">
+                       <div className="flex items-center justify-between mb-3">
+                         <div className="flex items-center gap-3">
+                           <div 
+                             className="w-6 h-6 rounded-full"
+                             style={{ backgroundColor: sala.cor }}
+                           />
+                           <h4 className="font-semibold text-gray-800">{sala.nome}</h4>
+                         </div>
+                         
+                         {(canEditTiposSalas() || canDeleteTiposSalas()) && (
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                 <MoreVertical className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end" className="bg-white">
+                               {canEditTiposSalas() && (
+                                 <DropdownMenuItem onClick={() => handleEditTipoDeSala(sala)}>
+                                   <Edit className="h-4 w-4 mr-2" />
+                                   Editar
+                                 </DropdownMenuItem>
+                               )}
+                               {canDeleteTiposSalas() && (
+                                 <AlertDialog>
+                                   <AlertDialogTrigger asChild>
+                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                       <Trash2 className="h-4 w-4 mr-2" />
+                                       Excluir
+                                     </DropdownMenuItem>
+                                   </AlertDialogTrigger>
+                                   <AlertDialogContent>
+                                     <AlertDialogHeader>
+                                       <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                       <AlertDialogDescription>
+                                         Tem certeza que deseja excluir o tipo de sala "{sala.nome}"? 
+                                         Esta ação não pode ser desfeita e pode afetar reservas existentes.
+                                       </AlertDialogDescription>
+                                     </AlertDialogHeader>
+                                     <AlertDialogFooter>
+                                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                       <AlertDialogAction
+                                         onClick={() => handleDeleteTipoDeSala(sala.id, sala.nome)}
+                                         className="bg-red-600 hover:bg-red-700"
+                                       >
+                                         Excluir
+                                       </AlertDialogAction>
+                                     </AlertDialogFooter>
+                                   </AlertDialogContent>
+                                 </AlertDialog>
+                               )}
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         )}
+                       </div>
                       
                       <div className="space-y-2 text-sm text-gray-600 mb-3">
                         <div className="flex items-center gap-2">
@@ -435,6 +513,16 @@ export const TiposSalasModal: React.FC<TiposSalasModalProps> = ({ isOpen, onClos
             )}
           </div>
         </div>
+
+        {/* Modal de Edição */}
+        <EditTipoDeSalaModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTipoDeSala(null);
+          }}
+          tipoDeSala={selectedTipoDeSala}
+        />
       </DialogContent>
     </Dialog>
   );
