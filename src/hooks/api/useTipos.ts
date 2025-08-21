@@ -73,7 +73,48 @@ export const useCreateTipoDeSala = () => {
   });
 };
 
-// Hook para atualizar tipo de sala
+// Hook para atualizar tipo de evento
+export const useUpdateTipoEvento = () => {
+  const queryClient = useQueryClient();
+  const { token, filialSelecionada } = useAuth();
+  const { canEditTiposEventos } = useClaims();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: TipoEvento }) => {
+      if (!canEditTiposEventos()) {
+        throw new Error('Você não tem permissão para editar tipos de eventos');
+      }
+      return fetchApi(`/${filialSelecionada}/TiposEventos/${id}`, token, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tiposEventos', filialSelecionada] });
+    },
+  });
+};
+
+// Hook para deletar tipo de evento
+export const useDeleteTipoEvento = () => {
+  const queryClient = useQueryClient();
+  const { token, filialSelecionada } = useAuth();
+  const { canDeleteTiposEventos } = useClaims();
+  
+  return useMutation({
+    mutationFn: (id: number) => {
+      if (!canDeleteTiposEventos()) {
+        throw new Error('Você não tem permissão para excluir tipos de eventos');
+      }
+      return fetchApi(`/${filialSelecionada}/TiposEventos/${id}`, token, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tiposEventos', filialSelecionada] });
+    },
+  });
+};
 export const useUpdateTipoDeSala = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Palette, Tag, Lock } from 'lucide-react';
+import { Plus, Palette, Tag, Lock, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,10 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ColorSelector } from './ColorSelector';
-import { useTiposEventos, useCreateTipoEvento } from '@/hooks/useApi';
+import { EditTipoEventoModal } from './EditTipoEventoModal';
+import { useTiposEventos, useCreateTipoEvento, useDeleteTipoEvento } from '@/hooks/useApi';
 import { useClaims } from '@/hooks/useClaims';
 import { useToast } from '@/hooks/use-toast';
+import { TipoEvento } from '@/types/api';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -29,10 +33,13 @@ interface TiposEventosModalProps {
 
 export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, onClose }) => {
   const [showForm, setShowForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTipoEvento, setSelectedTipoEvento] = useState<TipoEvento | null>(null);
   const { toast } = useToast();
-  const { canReadTiposEventos, canCreateTiposEventos } = useClaims();
+  const { canReadTiposEventos, canCreateTiposEventos, canEditTiposEventos, canDeleteTiposEventos } = useClaims();
   const { data: tiposEventos, isLoading } = useTiposEventos();
   const createTipoEvento = useCreateTipoEvento();
+  const deleteTipoEvento = useDeleteTipoEvento();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -65,8 +72,31 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
     }
   };
 
+  const handleEditTipoEvento = (tipoEvento: TipoEvento) => {
+    setSelectedTipoEvento(tipoEvento);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteTipoEvento = async (id: number, nome: string) => {
+    try {
+      await deleteTipoEvento.mutateAsync(id);
+      toast({
+        title: 'Tipo de evento excluído',
+        description: `O tipo "${nome}" foi excluído com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao excluir',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro ao tentar excluir o tipo de evento.',
+        variant: 'destructive',
+      });
+    }
+  };  
+
   const handleClose = () => {
     setShowForm(false);
+    setShowEditModal(false);
+    setSelectedTipoEvento(null);
     form.reset();
     onClose();
   };
@@ -227,25 +257,74 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tiposEventos?.map(tipo => (
-                  <Card key={tipo.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div 
-                          className="w-6 h-6 rounded-full"
-                          style={{ backgroundColor: tipo.cor }}
-                        />
-                        <h4 className="font-semibold text-gray-800">{tipo.nome}</h4>
-                      </div>
-                      <Badge 
-                        style={{ 
-                          backgroundColor: tipo.cor + '20',
-                          color: tipo.cor,
-                          border: `1px solid ${tipo.cor}40`
-                        }}
-                      >
-                        ID: {tipo.id}
-                      </Badge>
+                 {tiposEventos?.map(tipo => (
+                   <Card key={tipo.id} className="hover:shadow-md transition-shadow">
+                     <CardContent className="p-6">
+                       <div className="flex items-center justify-between mb-3">
+                         <div className="flex items-center gap-3">
+                           <div 
+                             className="w-6 h-6 rounded-full"
+                             style={{ backgroundColor: tipo.cor }}
+                           />
+                           <h4 className="font-semibold text-gray-800">{tipo.nome}</h4>
+                         </div>
+                         
+                         {(canEditTiposEventos() || canDeleteTiposEventos()) && (
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                 <MoreVertical className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end" className="bg-white">
+                               {canEditTiposEventos() && (
+                                 <DropdownMenuItem onClick={() => handleEditTipoEvento(tipo)}>
+                                   <Edit className="h-4 w-4 mr-2" />
+                                   Editar
+                                 </DropdownMenuItem>
+                               )}
+                               {canDeleteTiposEventos() && (
+                                 <AlertDialog>
+                                   <AlertDialogTrigger asChild>
+                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                       <Trash2 className="h-4 w-4 mr-2" />
+                                       Excluir
+                                     </DropdownMenuItem>
+                                   </AlertDialogTrigger>
+                                   <AlertDialogContent>
+                                     <AlertDialogHeader>
+                                       <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                       <AlertDialogDescription>
+                                         Tem certeza que deseja excluir o tipo de evento "{tipo.nome}"? 
+                                         Esta ação não pode ser desfeita e pode afetar eventos existentes.
+                                       </AlertDialogDescription>
+                                     </AlertDialogHeader>
+                                     <AlertDialogFooter>
+                                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                       <AlertDialogAction
+                                         onClick={() => handleDeleteTipoEvento(tipo.id, tipo.nome)}
+                                         className="bg-red-600 hover:bg-red-700"
+                                       >
+                                         Excluir
+                                       </AlertDialogAction>
+                                     </AlertDialogFooter>
+                                   </AlertDialogContent>
+                                 </AlertDialog>
+                               )}
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         )}
+                       </div>
+                       
+                       <Badge 
+                         style={{ 
+                           backgroundColor: tipo.cor + '20',
+                           color: tipo.cor,
+                           border: `1px solid ${tipo.cor}40`
+                         }}
+                       >
+                         ID: {tipo.id}
+                       </Badge>
                     </CardContent>
                   </Card>
                 ))}
@@ -253,6 +332,16 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
             )}
           </div>
         </div>
+
+        {/* Modal de Edição */}
+        <EditTipoEventoModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedTipoEvento(null);
+          }}
+          tipoEvento={selectedTipoEvento}
+        />
       </DialogContent>
     </Dialog>
   );
