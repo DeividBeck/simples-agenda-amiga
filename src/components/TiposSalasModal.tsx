@@ -44,7 +44,13 @@ export const TiposSalasModal: React.FC<TiposSalasModalProps> = ({ isOpen, onClos
   const [equipamentos, setEquipamentos] = useState<string[]>([]);
   const [novoEquipamento, setNovoEquipamento] = useState('');
   const { toast } = useToast();
-  const { canReadTiposSalas, canCreateTiposSalas, canEditTiposSalas, canDeleteTiposSalas } = useClaims();
+  const claims = useClaims();
+  const { canReadTiposSalas, canCreateTiposSalas, canEditTiposSalas, canDeleteTiposSalas } = claims;
+  
+  // Debug: Check what functions are available
+  console.log('useClaims result:', claims);
+  console.log('canEditTiposSalas:', canEditTiposSalas, typeof canEditTiposSalas);
+  console.log('canDeleteTiposSalas:', canDeleteTiposSalas, typeof canDeleteTiposSalas);
   const { data: tiposDeSalas, isLoading } = useTiposDeSalas();
   const createTipoDeSala = useCreateTipoDeSala();
   const deleteTipoDeSala = useDeleteTipoDeSala();
