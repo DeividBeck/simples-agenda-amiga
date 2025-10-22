@@ -202,10 +202,10 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       if (isAllDay) {
         // Evento de dia inteiro - estilo similar ao Google Calendar
         return (
-          <div className="fc-event-main-frame p-1 w-full">
-            <div className="fc-event-title-container">
-              <div className="fc-event-title fc-sticky flex items-center gap-1">
-                <span className="font-medium text-sm truncate">{eventInfo.event.title}</span>
+          <div className="fc-event-main-frame p-1 w-full overflow-hidden" title={eventInfo.event.title}>
+            <div className="fc-event-title-container overflow-hidden">
+              <div className="fc-event-title fc-sticky flex items-center gap-1 overflow-hidden">
+                <span className="font-medium text-sm truncate block max-w-full">{eventInfo.event.title}</span>
                 {evento.inscricaoAtiva && evento.slug && (
                   <ExternalLink className="h-3 w-3 flex-shrink-0" />
                 )}
@@ -216,14 +216,14 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       } else {
         // Evento com horário - mostrar como ponto/barra colorida
         return (
-          <div className="fc-event-main-frame p-1">
-            <div className="flex items-center gap-1">
+          <div className="fc-event-main-frame p-1 overflow-hidden" title={eventInfo.event.title}>
+            <div className="flex items-center gap-1 overflow-hidden max-w-full">
               <div
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: evento.tipoEvento.cor }}
               ></div>
-              <span className="font-medium text-xs truncate">{eventInfo.timeText}</span>
-              <span className="text-xs truncate">{eventInfo.event.title}</span>
+              <span className="font-medium text-xs flex-shrink-0">{eventInfo.timeText}</span>
+              <span className="text-xs truncate block">{eventInfo.event.title}</span>
               {evento.inscricaoAtiva && evento.slug && (
                 <ExternalLink className="h-3 w-3 flex-shrink-0" />
               )}
@@ -235,26 +235,26 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       // Sala
       if (isAllDay) {
         return (
-          <div className="fc-event-main-frame p-1 w-full">
-            <div className="fc-event-title-container">
-              <div className="fc-event-title fc-sticky flex items-center gap-1">
+          <div className="fc-event-main-frame p-1 w-full overflow-hidden" title={eventInfo.event.title}>
+            <div className="fc-event-title-container overflow-hidden">
+              <div className="fc-event-title fc-sticky flex items-center gap-1 overflow-hidden">
                 <MapPin className="h-3 w-3 flex-shrink-0" />
-                <span className="font-medium text-sm truncate">{eventInfo.event.title}</span>
+                <span className="font-medium text-sm truncate block max-w-full">{eventInfo.event.title}</span>
               </div>
             </div>
           </div>
         );
       } else {
         return (
-          <div className="fc-event-main-frame p-1">
-            <div className="flex items-center gap-1">
+          <div className="fc-event-main-frame p-1 overflow-hidden" title={eventInfo.event.title}>
+            <div className="flex items-center gap-1 overflow-hidden max-w-full">
               <div
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: eventInfo.event.borderColor }}
               ></div>
               <MapPin className="h-3 w-3 flex-shrink-0" />
-              <span className="font-medium text-xs truncate">{eventInfo.timeText}</span>
-              <span className="text-xs truncate">{eventInfo.event.title}</span>
+              <span className="font-medium text-xs flex-shrink-0">{eventInfo.timeText}</span>
+              <span className="text-xs truncate block">{eventInfo.event.title}</span>
             </div>
           </div>
         );
@@ -302,15 +302,38 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             border-radius: 4px !important;
             padding: 2px 6px !important;
             font-weight: 500 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
           }
           .fc-event-timed {
             border: none !important;
             background: transparent !important;
             box-shadow: none !important;
             padding: 1px 2px !important;
+            overflow: hidden !important;
+            max-width: 100% !important;
           }
           .fc-event-timed:hover {
             background: rgba(0,0,0,0.05) !important;
+          }
+          .fc-event-main-frame {
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 100% !important;
+          }
+          .fc-event-title, .fc-event-title-container {
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            max-width: 100% !important;
+          }
+          .fc-daygrid-event {
+            overflow: hidden !important;
+            white-space: nowrap !important;
+          }
+          .fc-daygrid-event-harness {
+            overflow: hidden !important;
           }
         `}</style>
         <div className="[&_.fc]:rounded-xl [&_.fc]:overflow-hidden [&_.fc-toolbar]:p-2 sm:[&_.fc-toolbar]:p-4 [&_.fc-toolbar]:bg-gradient-to-r [&_.fc-toolbar]:from-slate-50 [&_.fc-toolbar]:to-slate-100 [&_.fc-toolbar]:border-b [&_.fc-toolbar]:border-slate-200 [&_.fc-toolbar-title]:text-lg sm:[&_.fc-toolbar-title]:text-2xl [&_.fc-toolbar-title]:font-semibold [&_.fc-toolbar-title]:text-slate-800 [&_.fc-button]:bg-white [&_.fc-button]:border [&_.fc-button]:border-slate-300 [&_.fc-button]:text-slate-600 [&_.fc-button]:rounded-lg [&_.fc-button]:font-medium [&_.fc-button]:px-2 sm:[&_.fc-button]:px-4 [&_.fc-button]:py-1 sm:[&_.fc-button]:py-2 [&_.fc-button]:transition-all [&_.fc-button]:duration-200 [&_.fc-button]:text-xs sm:[&_.fc-button]:text-sm [&_.fc-button:hover]:bg-slate-50 [&_.fc-button:hover]:border-slate-400 [&_.fc-button:hover]:shadow-sm [&_.fc-button-active]:bg-blue-600 [&_.fc-button-active]:border-blue-600 [&_.fc-button-active]:text-white [&_.fc-daygrid-day]:border-slate-100 [&_.fc-daygrid-day:hover]:bg-slate-50 [&_.fc-day-today]:bg-blue-50 [&_.fc-day-today]:border-blue-600 [&_.fc-event]:rounded-md [&_.fc-event]:border [&_.fc-event]:shadow-sm [&_.fc-event]:transition-all [&_.fc-event]:duration-200 [&_.fc-event:hover]:transform [&_.fc-event:hover]:-translate-y-0.5 [&_.fc-event:hover]:shadow-md [&_.fc-col-header]:bg-slate-50 [&_.fc-col-header]:border-slate-200 [&_.fc-col-header-cell]:py-2 sm:[&_.fc-col-header-cell]:py-3 [&_.fc-col-header-cell]:px-1 sm:[&_.fc-col-header-cell]:px-2 [&_.fc-col-header-cell]:font-semibold [&_.fc-col-header-cell]:text-slate-700 [&_.fc-col-header-cell]:text-xs [&_.fc-col-header-cell]:uppercase [&_.fc-col-header-cell]:tracking-wide">
