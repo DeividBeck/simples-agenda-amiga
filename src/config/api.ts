@@ -12,17 +12,17 @@ export const API_CONFIG = {
   // API de autenticação  
   AUTH_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/LogIn'
-    : 'https://localhost:5247/api/Autenticacao/LogIn',
+    : 'http://localhost:5247/api/Autenticacao/LogIn',
 
   // API de cadastro
   CADASTRO_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/Cadastro'
-    : 'https://localhost:5247/api/Autenticacao/Cadastro',
+    : 'http://localhost:5247/api/Autenticacao/Cadastro',
 
   // API de mudança de senha
   CHANGE_PASSWORD_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/ChangePassword'
-    : 'https://localhost:5247/api/Autenticacao/ChangePassword',
+    : 'http://localhost:5247/api/Autenticacao/ChangePassword',
 };
 
 // Função helper para detectar ambiente
