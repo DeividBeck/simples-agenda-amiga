@@ -15,13 +15,13 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useCreateEvento, useTiposEventos } from '@/hooks/useApi';
-import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario } from '@/types/api';
+import { useCreateEvento, useTiposEventos, useTiposDeSalas } from '@/hooks/useApi';
+import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Clock, Users, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Schema atualizado com validações mais rigorosas, igual à tela de edição
+// Schema atualizado com validações mais rigorosas, incluindo recorrência e sala
 const schema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
   descricao: z.string().min(1, 'Descrição é obrigatória'),
@@ -34,6 +34,11 @@ const schema = z.object({
   inscricaoAtiva: z.boolean().default(false),
   nomeFormulario: z.string().optional(),
   nivelCompartilhamento: z.string().default('0'),
+  recorrencia: z.string().default('0'),
+  fimRecorrencia: z.date().optional(),
+  vincularSala: z.boolean().default(false),
+  tipoDeSalaId: z.string().optional(),
+  descricaoSala: z.string().optional(),
 }).refine((data) => {
   // Validação personalizada: se não for dia inteiro, horários são obrigatórios
   if (!data.allDay) {
@@ -43,6 +48,24 @@ const schema = z.object({
 }, {
   message: "Horário de início e fim são obrigatórios quando não for evento de dia inteiro",
   path: ["horaInicio"],
+}).refine((data) => {
+  // Validação: se recorrência for ativada, data fim de recorrência é obrigatória
+  if (data.recorrencia !== '0') {
+    return data.fimRecorrencia;
+  }
+  return true;
+}, {
+  message: "Data de fim da recorrência é obrigatória quando evento é recorrente",
+  path: ["fimRecorrencia"],
+}).refine((data) => {
+  // Validação: se vincular sala, tipo e descrição são obrigatórios
+  if (data.vincularSala) {
+    return data.tipoDeSalaId && data.descricaoSala;
+  }
+  return true;
+}, {
+  message: "Tipo de sala e descrição são obrigatórios quando vincular sala",
+  path: ["tipoDeSalaId"],
 });
 
 type FormData = z.infer<typeof schema>;
@@ -57,6 +80,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const { toast } = useToast();
   const createEvento = useCreateEvento();
   const { data: tiposEventos, isLoading: loadingTipos } = useTiposEventos();
+  const { data: tiposSalas } = useTiposDeSalas();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -72,12 +96,19 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       nivelCompartilhamento: '0',
       horaInicio: '08:00',
       horaFim: '17:00',
+      recorrencia: '0',
+      fimRecorrencia: undefined,
+      vincularSala: false,
+      tipoDeSalaId: '',
+      descricaoSala: '',
     }
   });
 
   const watchAllDay = form.watch('allDay');
   const watchInscricaoAtiva = form.watch('inscricaoAtiva');
   const watchDataInicio = form.watch('dataInicio');
+  const watchRecorrencia = form.watch('recorrencia');
+  const watchVincularSala = form.watch('vincularSala');
 
   // Auto-preencher data fim quando não for dia inteiro
   useEffect(() => {
@@ -95,7 +126,6 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   }, [initialDate, form]);
 
   const onSubmit = (values: FormData) => {
-
     let dataInicio = values.dataInicio;
     let dataFim = values.dataFim;
 
@@ -120,7 +150,16 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       tipoEventoId: parseInt(values.tipoEventoId),
       inscricaoAtiva: values.inscricaoAtiva,
       nomeFormulario: values.nomeFormulario && values.nomeFormulario !== 'generico' ? parseInt(values.nomeFormulario) as ENomeFormulario : null,
-      nivelCompartilhamento: parseInt(values.nivelCompartilhamento) as ENivelCompartilhamento
+      nivelCompartilhamento: parseInt(values.nivelCompartilhamento) as ENivelCompartilhamento,
+      recorrencia: parseInt(values.recorrencia) as ERecorrencia,
+      fimRecorrencia: values.recorrencia !== '0' && values.fimRecorrencia ? values.fimRecorrencia.toISOString() : null,
+      novaSala: values.vincularSala ? {
+        descricao: values.descricaoSala!,
+        tipoDeSalaId: parseInt(values.tipoDeSalaId!),
+        dataInicio: dataInicio.toISOString(),
+        dataFim: dataFim.toISOString(),
+        allDay: values.allDay
+      } : null
     };
 
     createEvento.mutate(data, {
@@ -429,12 +468,151 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {/* <SelectItem value="generico">Formulário Genérico</SelectItem> */}
                           <SelectItem value="0">Preparação para Batismo</SelectItem>
-                          {/* <SelectItem value="1">Preparação para Matrimônio</SelectItem>
-                          <SelectItem value="2">Catequese</SelectItem> */}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="recorrencia"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      Recorrência
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a recorrência" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">Não Repete</SelectItem>
+                        <SelectItem value="1">Diariamente</SelectItem>
+                        <SelectItem value="2">Semanalmente</SelectItem>
+                        <SelectItem value="3">Quinzenalmente</SelectItem>
+                        <SelectItem value="4">Mensalmente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {watchRecorrencia !== '0' && (
+                <FormField
+                  control={form.control}
+                  name="fimRecorrencia"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Fim da Recorrência *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy")
+                              ) : (
+                                <span>Selecione a data</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
+            <FormField
+              control={form.control}
+              name="vincularSala"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Vincular Sala</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Reservar uma sala para este evento
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {watchVincularSala && (
+              <div className="p-4 bg-green-50 rounded-lg space-y-4">
+                <FormField
+                  control={form.control}
+                  name="tipoDeSalaId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Sala *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo de sala" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {tiposSalas?.map(tipo => (
+                            <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: tipo.cor }}
+                                />
+                                {tipo.nome} - Capacidade: {tipo.capacidade}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="descricaoSala"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição da Reserva *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Reunião do grupo..." {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
