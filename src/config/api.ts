@@ -8,21 +8,21 @@ export const API_CONFIG = {
   BASE_URL: isProduction
     ? 'https://api.ecclesia.app.br/agendaparoquial/api'
     : 'https://localhost:7096/api',
-  
+
   // API de autenticação  
   AUTH_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/LogIn'
-    : 'https://localhost:7208/api/Autenticacao/LogIn',
+    : 'https://localhost:5247/api/Autenticacao/LogIn',
 
   // API de cadastro
   CADASTRO_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/Cadastro'
-    : 'https://localhost:7208/api/Autenticacao/Cadastro',
+    : 'https://localhost:5247/api/Autenticacao/Cadastro',
 
   // API de mudança de senha
   CHANGE_PASSWORD_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/ChangePassword'
-    : 'https://localhost:7208/api/Autenticacao/ChangePassword',
+    : 'https://localhost:5247/api/Autenticacao/ChangePassword',
 };
 
 // Função helper para detectar ambiente
