@@ -79,17 +79,17 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
       const dataFim = new Date(evento.dataFim);
 
       form.reset({
-        titulo: evento.titulo,
-        descricao: evento.descricao,
+        titulo: evento.titulo || '',
+        descricao: evento.descricao || '',
         dataInicio: dataInicio,
         dataFim: dataFim,
-        allDay: evento.allDay,
-        tipoEventoId: evento.tipoEventoId.toString(),
-        inscricaoAtiva: evento.inscricaoAtiva,
+        allDay: evento.allDay ?? false,
+        tipoEventoId: evento.tipoEventoId != null ? evento.tipoEventoId.toString() : '',
+        inscricaoAtiva: evento.inscricaoAtiva ?? false,
         nomeFormulario: evento.nomeFormulario != null ? evento.nomeFormulario.toString() : 'generico',
-        nivelCompartilhamento: evento.nivelCompartilhamento.toString(),
-        horaInicio: !evento.allDay ? format(dataInicio, 'HH:mm') : undefined,
-        horaFim: !evento.allDay ? format(dataFim, 'HH:mm') : undefined,
+        nivelCompartilhamento: evento.nivelCompartilhamento != null ? evento.nivelCompartilhamento.toString() : '0',
+        horaInicio: !evento.allDay && dataInicio ? format(dataInicio, 'HH:mm') : undefined,
+        horaFim: !evento.allDay && dataFim ? format(dataFim, 'HH:mm') : undefined,
       });
     }
   }, [evento, form]);
