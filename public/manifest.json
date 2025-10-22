@@ -1,0 +1,67 @@
+{
+  "name": "Agenda Paroquial - Sistema Ecclesia",
+  "short_name": "Agenda Paroquial",
+  "description": "Sistema completo de gestão de agenda e eventos paroquiais",
+  "start_url": "/agendaparoquial/",
+  "display": "standalone",
+  "background_color": "#1e40af",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "categories": [
+    "productivity",
+    "lifestyle",
+    "utilities"
+  ],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "scope": "/agendaparoquial",
+  "icons": [
+    {
+      "src": "lovable-uploads/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "lovable-uploads/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "lovable-uploads/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo Evento",
+      "short_name": "Evento",
+      "description": "Criar um novo evento rapidamente",
+      "url": "agendaparoquial/?action=new-event",
+      "icons": [
+        {
+          "src": "lovable-uploads/logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Calendário",
+      "short_name": "Calendário",
+      "description": "Ver calendário de eventos",
+      "url": "agendaparoquial/?view=calendar",
+      "icons": [
+        {
+          "src": "lovable-uploads/logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}

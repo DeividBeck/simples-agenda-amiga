@@ -80,7 +80,7 @@ export const ViewSalaModal: React.FC<ViewSalaModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl w-[95vw] max-w-[95vw] max-h-[90vh] overflow-y-auto mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <MapPin className="h-5 w-5" />
@@ -152,20 +152,20 @@ export const ViewSalaModal: React.FC<ViewSalaModalProps> = ({
           )}
 
           {/* Botões */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
             <Button 
               variant="outline" 
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 order-3 sm:order-1"
             >
               Fechar
             </Button>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
               {canEdit && onEdit && (
                 <Button 
                   onClick={onEdit}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                 >
                   Editar Reserva
                 </Button>
@@ -176,7 +176,7 @@ export const ViewSalaModal: React.FC<ViewSalaModalProps> = ({
                   <AlertDialogTrigger asChild>
                     <Button 
                       variant="destructive"
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Excluir

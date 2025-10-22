@@ -1,8 +1,5 @@
 
-// URL da API baseada no ambiente
-const API_BASE_URL = import.meta.env.PROD
-  ? 'https://api.ecclesia.app.br/agendaparoquial/api'  // Produção
-  : 'https://localhost:7096/api';  // Desenvolvimento (ajuste conforme sua API local)
+import { API_CONFIG } from '@/config/api';
 
 // Função para fazer fetch com configuração
 export const fetchApi = async (endpoint: string, token?: string, options?: RequestInit) => {
@@ -24,7 +21,7 @@ export const fetchApi = async (endpoint: string, token?: string, options?: Reque
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
     ...options,
     headers,
   });

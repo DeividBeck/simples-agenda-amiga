@@ -4,20 +4,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <title>Agenda Paroquial</title>
-  <meta name="description" content="Projeto Ecclesia" />
-  <meta name="author" content="Deivid" />
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#1e40af" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Agenda Paroquial" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
-  <meta property="og:title" content="Agenda Paroquial" />
-  <meta property="og:description" content="Sistema Paroquial" />
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" sizes="192x192" href="lovable-uploads/logo.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="lovable-uploads/logo.png" />
+
+  <!-- Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <title>Agenda Paroquial - Sistema Ecclesia</title>
+  <meta name="description"
+    content="Sistema completo de gestão de agenda e eventos paroquiais. Gerencie eventos, salas e inscrições de forma fácil e intuitiva." />
+  <meta name="author" content="Sistema Ecclesia" />
+  <meta name="keywords" content="agenda, paroquial, eventos, igreja, calendario, sistema, ecclesia" />
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Agenda Paroquial - Sistema Ecclesia" />
+  <meta property="og:description" content="Sistema completo de gestão de agenda e eventos paroquiais" />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="lovable-uploads/logo.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:locale" content="pt_BR" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Agenda Paroquial - Sistema Ecclesia" />
+  <meta name="twitter:description" content="Sistema completo de gestão de agenda e eventos paroquiais" />
+  <meta name="twitter:image" content="lovable-uploads/logo.png" />
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+          })
+          .catch((registrationError) => {
+          });
+      });
+    }
+  </script>
 </body>
 
 </html>

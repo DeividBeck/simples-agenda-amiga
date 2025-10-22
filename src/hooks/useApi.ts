@@ -4,4 +4,5 @@ export * from './api/useEventos';
 export * from './api/useTipos';
 export * from './api/useSalas';
 export * from './api/useInscricoes';
+export * from './api/useUsers';
 export { fetchApi } from './api/baseApi';

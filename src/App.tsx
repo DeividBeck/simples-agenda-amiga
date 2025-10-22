@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, replace } from "react-router-dom";
 import Index from "./pages/Index";
 import Inscricao from "./pages/Inscricao";
 import EventosPublicos from "./pages/EventosPublicos";
@@ -17,7 +17,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename={import.meta.env.PROD ? "/agendaparoquial/" : ""}>
+      <BrowserRouter basename="/agendaparoquial/">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />

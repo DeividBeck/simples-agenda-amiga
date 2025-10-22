@@ -8,10 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 
-// URL da API de autenticação baseada no ambiente
-const AUTH_API_URL = import.meta.env.PROD
-  ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/LogIn'  // Produção
-  : 'https://localhost:7208/api/Autenticacao/LogIn';  // Desenvolvimento (ajuste conforme sua API local)
+import { getAuthUrl } from '@/config/api';
 
 
 export default function Login() {
@@ -50,7 +47,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(AUTH_API_URL, {
+      const response = await fetch(getAuthUrl(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +102,7 @@ export default function Login() {
         // Aguardar um momento para mostrar feedback visual
         await new Promise(resolve => setTimeout(resolve, 500));
         // Recarregar a página para atualizar o estado de autenticação
-        window.location.href = '/';
+        window.location.href = '/agendaparoquial/';
       } else {
         setError('Erro na resposta do servidor. Tente novamente');
       }
@@ -136,8 +133,12 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-elegant">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <Calendar className="h-8 w-8 text-primary" />
+          <div className="mx-auto w-32 h-32 flex items-center justify-center">
+            <img
+              src="lovable-uploads/logo.png"
+              alt="Calendário Paroquial"
+              className="h-32 w-32 object-contain"
+            />
           </div>
           <CardTitle className="text-2xl font-bold">
             Calendário Paroquial

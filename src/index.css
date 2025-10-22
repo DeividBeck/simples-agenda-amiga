@@ -100,4 +100,15 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Modal centering fix for all screen sizes */
+  [data-radix-dialog-content] {
+    @apply !left-1/2 !top-1/2 !transform !-translate-x-1/2 !-translate-y-1/2 !m-0;
+    position: fixed !important;
+  }
+  
+  /* Ensure modal overlay is centered */
+  [data-radix-dialog-overlay] {
+    @apply !fixed !inset-0 !flex !items-center !justify-center;
+  }
 }

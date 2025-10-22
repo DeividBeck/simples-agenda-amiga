@@ -148,7 +148,7 @@ export const TiposSalasModal: React.FC<TiposSalasModalProps> = ({ isOpen, onClos
   if (!canReadTiposSalas()) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md w-[95vw] max-w-[95vw] max-h-[90vh] overflow-y-auto mx-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
@@ -169,7 +169,7 @@ export const TiposSalasModal: React.FC<TiposSalasModalProps> = ({ isOpen, onClos
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl w-[95vw] max-w-[95vw] max-h-[88vh] overflow-y-auto mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">

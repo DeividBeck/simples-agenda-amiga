@@ -98,7 +98,7 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl w-[95vw] max-w-[95vw] max-h-[90vh] overflow-y-auto mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Calendar className="h-5 w-5" />
@@ -162,48 +162,54 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
               <Separator />
               <div>
                 <h3 className="font-medium mb-2">Link de Inscrição</h3>
-                <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-                  <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  <input 
-                    type="text" 
-                    value={inscricaoLink}
-                    readOnly
-                    className="flex-1 bg-transparent text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyLink}
-                  >
-                    Copiar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleOpenInscricaoLink}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
+                <div className="flex flex-col sm:flex-row items-center gap-2 p-3 bg-muted rounded-md">
+                  <div className="flex items-center gap-2 w-full">
+                    <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <input 
+                      type="text" 
+                      value={inscricaoLink}
+                      readOnly
+                      className="flex-1 bg-transparent text-sm min-w-0"
+                    />
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyLink}
+                      className="flex-1 sm:flex-none"
+                    >
+                      Copiar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleOpenInscricaoLink}
+                      className="flex-1 sm:flex-none"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </>
           )}
 
           {/* Botões */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
             <Button 
               variant="outline" 
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 order-3 sm:order-1"
             >
               Fechar
             </Button>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
               {canEdit && onEdit && (
                 <Button 
                   onClick={onEdit}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                 >
                   Editar Evento
                 </Button>
@@ -214,7 +220,7 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
                   <AlertDialogTrigger asChild>
                     <Button 
                       variant="destructive"
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Excluir

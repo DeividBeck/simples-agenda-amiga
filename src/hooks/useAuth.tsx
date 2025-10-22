@@ -44,6 +44,19 @@ export const useAuth = () => {
         );
         const payload = JSON.parse(jsonPayload);
 
+        // Verificar se o token não está expirado
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp && payload.exp < now) {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('filialSelecionada');
+          setToken(null);
+          setTokenData(null);
+          setFiliais([]);
+          setFilialSelecionada(1);
+          setIsInitialized(true);
+          return;
+        }
+
         setToken(authToken);
         setTokenData(payload);
 
@@ -70,6 +83,7 @@ export const useAuth = () => {
         if (!isInitialized && filiaisExtraidas.length > 0) {
           // Verificar se há uma filial salva no localStorage
           const savedFilial = localStorage.getItem('filialSelecionada');
+
           if (savedFilial) {
             const savedFilialId = parseInt(savedFilial);
             // Verificar se a filial salva existe nas filiais extraídas
@@ -110,6 +124,11 @@ export const useAuth = () => {
 
   const handleSetFilialSelecionada = async (filialId: number) => {
 
+    // Se já é a filial selecionada, não fazer nada
+    if (filialId === filialSelecionada) {
+      return;
+    }
+
     // Mostrar loading
     setIsChangingFilial(true);
 
@@ -118,8 +137,11 @@ export const useAuth = () => {
       setFilialSelecionada(filialId);
       localStorage.setItem('filialSelecionada', filialId.toString());
 
+      // Limpar cache do React Query para forçar recarregamento dos dados
+      queryClient.clear();
+
       // Aguardar um momento para mostrar o loading
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       // Fazer refresh da página para garantir que todos os dados sejam recarregados
       window.location.reload();
