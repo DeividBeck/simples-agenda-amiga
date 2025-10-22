@@ -30,6 +30,14 @@ export enum ENomeFormulario {
   Catequese = 2
 }
 
+export enum ERecorrencia {
+  NaoRepete = 0,
+  Diariamente = 1,
+  Semanalmente = 2,
+  Quinzenalmente = 3,
+  Mensalmente = 4
+}
+
 export enum EStatusReserva {
   Pendente = 0,
   Aprovado = 1,
@@ -90,6 +98,15 @@ export interface CreateEventoRequest {
   inscricaoAtiva: boolean;
   nomeFormulario?: ENomeFormulario | null;
   nivelCompartilhamento: ENivelCompartilhamento;
+  recorrencia?: ERecorrencia;
+  fimRecorrencia?: string | null;
+  novaSala?: {
+    descricao: string;
+    tipoDeSalaId: number;
+    dataInicio: string;
+    dataFim: string;
+    allDay: boolean;
+  } | null;
 }
 
 export interface CreateSalaRequest {

@@ -112,7 +112,10 @@ export const useCreateEvento = () => {
         tipoEventoId: data.tipoEventoId,
         inscricaoAtiva: data.inscricaoAtiva,
         nomeFormulario: data.nomeFormulario,
-        nivelCompartilhamento: data.nivelCompartilhamento
+        nivelCompartilhamento: data.nivelCompartilhamento,
+        recorrencia: data.recorrencia || 0,
+        fimRecorrencia: data.fimRecorrencia || null,
+        novaSala: data.novaSala || null
       };
 
       return fetchApi(`/${filialSelecionada}/Eventos`, token, {
