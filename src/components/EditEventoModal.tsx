@@ -86,7 +86,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         allDay: evento.allDay,
         tipoEventoId: evento.tipoEventoId.toString(),
         inscricaoAtiva: evento.inscricaoAtiva,
-        nomeFormulario: evento.nomeFormulario !== null ? evento.nomeFormulario.toString() : 'generico',
+        nomeFormulario: evento.nomeFormulario != null ? evento.nomeFormulario.toString() : 'generico',
         nivelCompartilhamento: evento.nivelCompartilhamento.toString(),
         horaInicio: !evento.allDay ? format(dataInicio, 'HH:mm') : undefined,
         horaFim: !evento.allDay ? format(dataFim, 'HH:mm') : undefined,
