@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon, Copy } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -15,9 +15,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useUpdateEvento, useTiposEventos } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
-import { Evento, ENivelCompartilhamento, ENomeFormulario } from '@/types/api';
+import { Evento, ENivelCompartilhamento, ENomeFormulario, ERecorrencia } from '@/types/api';
 import { cn } from '@/lib/utils';
 import { useInscricaoLink } from '@/hooks/useInscricaoLink';
+import { RecurrenceScopeDialog } from './RecurrenceScopeDialog';
 
 const formSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
@@ -55,6 +56,8 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
   const { data: tiposEventos } = useTiposEventos();
   const updateEvento = useUpdateEvento();
   const { generateInscricaoLink, copyLinkToClipboard } = useInscricaoLink();
+  const [showScopeDialog, setShowScopeDialog] = useState(false);
+  const [pendingData, setPendingData] = useState<FormData | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -119,11 +122,26 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
     }
   };
 
+  const isRecurring = evento && evento.recorrencia !== undefined && evento.recorrencia !== ERecorrencia.NaoRepete;
+
   const onSubmit = async (data: FormData) => {
     if (!evento) return;
 
-    try {
+    // Se for evento recorrente, mostrar diálogo de escopo
+    if (isRecurring) {
+      setPendingData(data);
+      setShowScopeDialog(true);
+      return;
+    }
 
+    // Executar atualização normal
+    await executeUpdate(data);
+  };
+
+  const executeUpdate = async (data: FormData, scope?: number) => {
+    if (!evento) return;
+
+    try {
       let dataInicio = data.dataInicio;
       let dataFim = data.dataFim;
 
@@ -156,6 +174,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
       await updateEvento.mutateAsync({
         id: evento.id,
         data: eventoAtualizado,
+        scope,
       });
 
       toast({
@@ -170,6 +189,13 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         description: 'Ocorreu um erro ao tentar atualizar o evento. Tente novamente.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleScopeConfirm = async (scope: number) => {
+    if (pendingData) {
+      await executeUpdate(pendingData, scope);
+      setPendingData(null);
     }
   };
 
@@ -519,6 +545,16 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
           </form>
         </Form>
       </DialogContent>
+
+      {isRecurring && (
+        <RecurrenceScopeDialog
+          isOpen={showScopeDialog}
+          onClose={() => setShowScopeDialog(false)}
+          onConfirm={handleScopeConfirm}
+          type="edit"
+          eventTitle={evento?.titulo || ''}
+        />
+      )}
     </Dialog>
   );
 };

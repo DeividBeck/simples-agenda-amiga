@@ -155,7 +155,7 @@ export const useUpdateEvento = () => {
   const { token, filialSelecionada } = useAuth();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Omit<UpdateEventoData, 'id'> }) => {
+    mutationFn: ({ id, data, scope }: { id: number; data: Omit<UpdateEventoData, 'id'>; scope?: number }) => {
 
       // Converter datas para formato ISO UTC se necessário
       const dataInicioISO = data.dataInicio.includes('T') ?
@@ -181,7 +181,8 @@ export const useUpdateEvento = () => {
         nivelCompartilhamento: data.nivelCompartilhamento
       };
 
-      return fetchApi(`/${filialSelecionada}/Eventos/${id}`, token, {
+      const queryParam = scope !== undefined ? `?scope=${scope}` : '';
+      return fetchApi(`/${filialSelecionada}/Eventos/${id}${queryParam}`, token, {
         method: 'PUT',
         body: JSON.stringify(requestData),
       });
@@ -204,12 +205,13 @@ export const useDeleteEvento = () => {
   const { canDeleteEventos } = useClaims();
 
   return useMutation({
-    mutationFn: (id: number) => {
+    mutationFn: ({ id, scope }: { id: number; scope?: number }) => {
       if (!canDeleteEventos()) {
         throw new Error('Você não tem permissão para excluir eventos');
       }
 
-      return fetchApi(`/${filialSelecionada}/Eventos/${id}`, token, {
+      const queryParam = scope !== undefined ? `?scope=${scope}` : '';
+      return fetchApi(`/${filialSelecionada}/Eventos/${id}${queryParam}`, token, {
         method: 'DELETE',
       });
     },

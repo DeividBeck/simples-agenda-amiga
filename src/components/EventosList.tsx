@@ -77,7 +77,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
 
   const handleDeleteEvento = async (id: number, titulo: string) => {
     try {
-      await deleteEvento.mutateAsync(id);
+      await deleteEvento.mutateAsync({ id });
       toast({
         title: 'Evento excluído',
         description: `O evento "${titulo}" foi excluído com sucesso.`,
