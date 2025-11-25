@@ -57,17 +57,16 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
     }
   };
 
-  const handleDeleteEvento = async () => {
+  const handleDeleteClick = () => {
     if (!evento) return;
 
-    // Se for evento recorrente, mostrar diálogo de escopo
+    // Se for evento recorrente, mostrar diálogo de escopo diretamente
     if (isRecurring) {
       setShowDeleteScopeDialog(true);
       return;
     }
 
-    // Executar exclusão normal
-    await executeDelete();
+    // Para eventos não recorrentes, mostrar confirmação padrão via AlertDialog
   };
 
   const executeDelete = async (scope?: number) => {
@@ -236,35 +235,48 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
               )}
               
               {canDeleteEventos() && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                <>
+                  {isRecurring ? (
                     <Button 
                       variant="destructive"
                       className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                      onClick={handleDeleteClick}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Excluir
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja excluir o evento "{evento.titulo}"? 
-                        Esta ação não pode ser desfeita.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteEvento}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                  ) : (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="destructive"
+                          className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir o evento "{evento.titulo}"? 
+                            Esta ação não pode ser desfeita.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => executeDelete()}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </>
               )}
             </div>
           </div>
