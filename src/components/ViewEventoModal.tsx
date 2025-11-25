@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, Share2, ExternalLink, Users, MapPin, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Evento } from '@/types/api';
+import { Evento, ERecorrencia } from '@/types/api';
 import { useInscricaoLink } from '@/hooks/useInscricaoLink';
 import { useDeleteEvento } from '@/hooks/useApi';
 import { useClaims } from '@/hooks/useClaims';
 import { useToast } from '@/hooks/use-toast';
+import { RecurrenceScopeDialog } from './RecurrenceScopeDialog';
 
 interface ViewEventoModalProps {
   isOpen: boolean;
@@ -31,10 +32,12 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
   const { canDeleteEventos } = useClaims();
   const deleteEvento = useDeleteEvento();
   const { generateInscricaoLink, copyLinkToClipboard } = useInscricaoLink();
+  const [showDeleteScopeDialog, setShowDeleteScopeDialog] = useState(false);
 
   if (!evento) return null;
 
   const inscricaoLink = generateInscricaoLink(evento);
+  const isRecurring = evento.recorrencia !== undefined && evento.recorrencia !== ERecorrencia.NaoRepete;
 
   const handleCopyLink = async () => {
     if (inscricaoLink) {
@@ -55,8 +58,21 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
   };
 
   const handleDeleteEvento = async () => {
+    if (!evento) return;
+
+    // Se for evento recorrente, mostrar diálogo de escopo
+    if (isRecurring) {
+      setShowDeleteScopeDialog(true);
+      return;
+    }
+
+    // Executar exclusão normal
+    await executeDelete();
+  };
+
+  const executeDelete = async (scope?: number) => {
     try {
-      await deleteEvento.mutateAsync(evento.id);
+      await deleteEvento.mutateAsync({ id: evento.id, scope });
       toast({
         title: 'Evento excluído',
         description: `O evento "${evento.titulo}" foi excluído com sucesso.`,
@@ -69,6 +85,10 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
         variant: 'destructive',
       });
     }
+  };
+
+  const handleDeleteScopeConfirm = async (scope: number) => {
+    await executeDelete(scope);
   };
 
   const formatDataEvento = () => {
@@ -250,6 +270,16 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
           </div>
         </div>
       </DialogContent>
+
+      {isRecurring && (
+        <RecurrenceScopeDialog
+          isOpen={showDeleteScopeDialog}
+          onClose={() => setShowDeleteScopeDialog(false)}
+          onConfirm={handleDeleteScopeConfirm}
+          type="delete"
+          eventTitle={evento.titulo}
+        />
+      )}
     </Dialog>
   );
 };

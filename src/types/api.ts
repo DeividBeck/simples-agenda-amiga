@@ -45,6 +45,18 @@ export enum EStatusReserva {
   Cancelado = 3
 }
 
+export enum EEdicaoRecorrencia {
+  Este = 0,
+  EsteEfuturos = 1,
+  Todos = 2
+}
+
+export enum EExclusaoRecorrencia {
+  Este = 0,
+  EsteEfuturos = 1,
+  Todos = 2
+}
+
 export interface Evento {
   id: number;
   titulo: string;
@@ -60,6 +72,11 @@ export interface Evento {
   tipoEvento: TipoEvento;
   filialId: number;
   filial: Filial | null;
+  recorrencia?: ERecorrencia;
+  fimRecorrencia?: string | null;
+  eventoOrigemId?: number | null;
+  sala?: Sala | null;
+  salaId?: number | null;
 }
 
 export interface TipoDeSala {
