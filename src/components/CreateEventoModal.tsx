@@ -271,8 +271,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                 name="nivelCompartilhamento"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
+                    <FormLabel className="font-medium mb-2">
                       Nível de Compartilhamento
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>

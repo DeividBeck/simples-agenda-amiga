@@ -30,31 +30,41 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
     return eventos.filter(evento => {
       const startDate = parseISO(evento.dataInicio);
       const endDate = parseISO(evento.dataFim);
-      
+
       if (evento.allDay) {
         // Para eventos de dia inteiro, verificar se o dia está dentro do intervalo
         const adjustedEndDate = new Date(endDate);
-        return isWithinInterval(day, { start: startDate, end: adjustedEndDate }) || 
-               isSameDay(startDate, day) || 
-               isSameDay(adjustedEndDate, day);
+        return isWithinInterval(day, { start: startDate, end: adjustedEndDate }) ||
+          isSameDay(startDate, day) ||
+          isSameDay(adjustedEndDate, day);
       }
-      
+
       return isSameDay(startDate, day);
     });
   };
 
   const getSalasForDay = (day: Date) => {
+    // Filtrar salas que não estão vinculadas a eventos
+    const salasVinculadas = eventos
+      .filter(e => e.sala?.id)
+      .map(e => e.sala!.id);
+
     return salas.filter(sala => {
+      // Não mostrar salas que já estão vinculadas a eventos
+      if (salasVinculadas.includes(sala.id)) {
+        return false;
+      }
+
       const startDate = parseISO(sala.dataInicio);
       const endDate = parseISO(sala.dataFim);
-      
+
       if (sala.allDay) {
         const adjustedEndDate = new Date(endDate);
-        return isWithinInterval(day, { start: startDate, end: adjustedEndDate }) || 
-               isSameDay(startDate, day) || 
-               isSameDay(adjustedEndDate, day);
+        return isWithinInterval(day, { start: startDate, end: adjustedEndDate }) ||
+          isSameDay(startDate, day) ||
+          isSameDay(adjustedEndDate, day);
       }
-      
+
       return isSameDay(startDate, day);
     });
   };
@@ -102,12 +112,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
 
   // Função para tornar a cor mais clara para o texto
   const lightenColor = (color: string, percent: number) => {
-    const num = parseInt(color.replace("#",""), 16);
+    const num = parseInt(color.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);
     const R = (num >> 16) + amt;
     const G = (num >> 8 & 0x00FF) + amt;
     const B = (num & 0x0000FF) + amt;
-    return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+    return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
   };
 
   return (
@@ -145,29 +155,37 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
             const salasDay = getSalasForDay(day);
             const isCurrentDay = isToday(day);
             const allItems = [...eventosDay, ...salasDay];
-            
+
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-[120px] p-2 border rounded-lg transition-colors ${
-                  isCurrentDay 
-                    ? 'bg-blue-50 border-blue-200' 
+                className={`min-h-[120px] p-2 border rounded-lg transition-colors ${isCurrentDay
+                    ? 'bg-blue-50 border-blue-200'
                     : 'bg-white border-gray-200 hover:bg-gray-50'
-                }`}
+                  }`}
               >
-                <div className={`text-sm font-medium mb-2 ${
-                  isCurrentDay ? 'text-blue-600' : 'text-gray-600'
-                }`}>
+                <div className={`text-sm font-medium mb-2 ${isCurrentDay ? 'text-blue-600' : 'text-gray-600'
+                  }`}>
                   {format(day, 'd')}
                 </div>
-                
+
                 <div className="space-y-1">
                   {/* Renderizar eventos estilo Google Calendar */}
                   {eventosDay.slice(0, 3).map(evento => {
                     const startDate = parseISO(evento.dataInicio);
                     const endDate = parseISO(evento.dataFim);
                     const isAllDay = evento.allDay;
-                    
+                    const temSala = evento.sala?.id;
+                    const tipoSala = temSala ? tiposDeSalas.find(ts => ts.id === evento.sala!.tipoDeSalaId) : null;
+
+                    const tituloCompleto = temSala
+                      ? `${evento.titulo} - 🏛️ ${tipoSala?.nome || 'Sala'}`
+                      : evento.titulo;
+
+                    const tooltipText = temSala
+                      ? `${evento.titulo}\n🏛️ ${tipoSala?.nome || 'Sala'}\n${evento.descricao}\n${isAllDay ? 'Evento de dia inteiro' : format(startDate, 'HH:mm') + ' - ' + format(endDate, 'HH:mm')}`
+                      : `${evento.titulo}\n${evento.descricao}\n${isAllDay ? 'Evento de dia inteiro' : format(startDate, 'HH:mm') + ' - ' + format(endDate, 'HH:mm')}`;
+
                     if (isAllDay) {
                       // Evento de dia inteiro - barra colorida completa
                       return (
@@ -178,11 +196,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                             backgroundColor: evento.tipoEvento.cor,
                             color: '#ffffff'
                           }}
-                          title={`${evento.titulo}\n${evento.descricao}\n${isAllDay ? 'Evento de dia inteiro' : 'Evento com horário específico'}`}
+                          title={tooltipText}
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-1">
                             <span className="truncate font-medium">
-                              {evento.titulo}
+                              {tituloCompleto}
                             </span>
                             {evento.inscricaoAtiva && (
                               <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-70" />
@@ -196,9 +214,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                         <div
                           key={`evento-${evento.id}`}
                           className="text-xs p-1 rounded-sm cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-1"
-                          title={`${evento.titulo}\n${evento.descricao}\n${format(startDate, 'HH:mm')} - ${format(endDate, 'HH:mm')}`}
+                          title={tooltipText}
                         >
-                          <div 
+                          <div
                             className="w-2 h-2 rounded-full flex-shrink-0"
                             style={{ backgroundColor: evento.tipoEvento.cor }}
                           ></div>
@@ -206,7 +224,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                             {format(startDate, 'HH:mm')}
                           </span>
                           <span className="truncate font-medium text-gray-800">
-                            {evento.titulo}
+                            {tituloCompleto}
                           </span>
                           {evento.inscricaoAtiva && (
                             <ExternalLink className="h-3 w-3 text-gray-500 flex-shrink-0" />
@@ -223,7 +241,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                     const corTipoSala = getTipoDeSalaCor(sala.tipoDeSalaId);
                     const tipoSala = tiposDeSalas.find(tipo => tipo.id === sala.tipoDeSalaId);
                     const isAllDay = sala.allDay;
-                    
+
                     if (isAllDay) {
                       return (
                         <div
@@ -250,7 +268,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                           className="text-xs p-1 rounded-sm cursor-pointer hover:bg-gray-50 transition-colors flex items-center gap-1"
                           title={`Sala: ${tipoSala?.nome || 'Sala'}\n${sala.descricao || 'Reserva'}\n${format(startDate, 'HH:mm')} - ${format(endDate, 'HH:mm')}`}
                         >
-                          <div 
+                          <div
                             className="w-2 h-2 rounded-full flex-shrink-0"
                             style={{ backgroundColor: corTipoSala }}
                           ></div>
@@ -265,7 +283,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                       );
                     }
                   })}
-                  
+
                   {allItems.length > 3 && (
                     <div className="text-xs text-gray-500 font-medium p-1">
                       +{allItems.length - 3} mais

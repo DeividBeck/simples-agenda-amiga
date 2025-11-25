@@ -57,9 +57,16 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       endDate = dataFim.toISOString();
     }
 
+    // Se o evento tem sala vinculada, incluir no título
+    const temSala = evento.sala?.id;
+    const tipoSala = temSala ? tiposDeSalas.find(ts => ts.id === evento.sala!.tipoDeSalaId) : null;
+    const titulo = temSala
+      ? `${evento.titulo} - 🏛️ ${tipoSala?.nome || 'Sala'}`
+      : evento.titulo;
+
     return {
       id: `evento-${evento.id}`,
-      title: evento.titulo,
+      title: titulo,
       start: evento.dataInicio,
       end: endDate,
       allDay: isAllDay,
@@ -79,13 +86,22 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
         inscricaoAtiva: evento.inscricaoAtiva,
         nivelCompartilhamento: evento.nivelCompartilhamento,
         slug: evento.slug,
-        isAllDay: isAllDay
+        isAllDay: isAllDay,
+        temSala: temSala,
+        nomeSala: tipoSala?.nome
       }
     };
   });
 
-  // Converter salas para o formato do FullCalendar
-  const salasCalendar = salas.map(sala => {
+  // Filtrar salas que não estão vinculadas a eventos
+  const salasVinculadas = eventos
+    .filter(e => e.sala?.id)
+    .map(e => e.sala!.id);
+
+  const salasIndependentes = salas.filter(sala => !salasVinculadas.includes(sala.id));
+
+  // Converter salas independentes para o formato do FullCalendar
+  const salasCalendar = salasIndependentes.map(sala => {
     const tipoSala = tiposDeSalas.find(tipo => tipo.id === sala.tipoDeSalaId);
     const corTipoSala = tipoSala?.cor || '#22c55e'; // Verde padrão se não encontrar
     const isAllDay = sala.allDay;

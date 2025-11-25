@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Copy } from 'lucide-react';
+import { CalendarIcon, Copy, Clock, Users, FileText } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useUpdateEvento, useTiposEventos } from '@/hooks/useApi';
+import { useUpdateEvento, useTiposEventos, useTiposDeSalas } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 import { Evento, ENivelCompartilhamento, ENomeFormulario, ERecorrencia } from '@/types/api';
 import { cn } from '@/lib/utils';
@@ -32,6 +32,8 @@ const formSchema = z.object({
   inscricaoAtiva: z.boolean().default(false),
   nomeFormulario: z.string().optional(),
   nivelCompartilhamento: z.string().default('0'),
+  recorrencia: z.string().default('0'),
+  fimRecorrencia: z.date().optional(),
 }).refine((data) => {
   // Validação personalizada: se não for dia inteiro, horários são obrigatórios
   if (!data.allDay) {
@@ -41,6 +43,15 @@ const formSchema = z.object({
 }, {
   message: "Horário de início e fim são obrigatórios quando não for evento de dia inteiro",
   path: ["horaInicio"],
+}).refine((data) => {
+  // Validação: se recorrência for ativada, data fim de recorrência é obrigatória
+  if (data.recorrencia !== '0') {
+    return data.fimRecorrencia;
+  }
+  return true;
+}, {
+  message: "Data de fim da recorrência é obrigatória quando evento é recorrente",
+  path: ["fimRecorrencia"],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -54,6 +65,7 @@ interface EditEventoModalProps {
 export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClose, evento }) => {
   const { toast } = useToast();
   const { data: tiposEventos } = useTiposEventos();
+  const { data: tiposSalas } = useTiposDeSalas();
   const updateEvento = useUpdateEvento();
   const { generateInscricaoLink, copyLinkToClipboard } = useInscricaoLink();
   const [showScopeDialog, setShowScopeDialog] = useState(false);
@@ -69,6 +81,8 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
       inscricaoAtiva: false,
       nomeFormulario: 'generico',
       nivelCompartilhamento: '0',
+      recorrencia: '0',
+      fimRecorrencia: undefined,
     },
   });
 
@@ -87,12 +101,15 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         dataInicio: dataInicio,
         dataFim: dataFim,
         allDay: evento.allDay ?? false,
-        tipoEventoId: evento.tipoEventoId != null ? evento.tipoEventoId.toString() : '',
+        // Corrigido: usar evento.tipoEvento.id em vez de evento.tipoEventoId
+        tipoEventoId: evento.tipoEvento?.id != null ? evento.tipoEvento.id.toString() : (evento.tipoEventoId != null ? evento.tipoEventoId.toString() : ''),
         inscricaoAtiva: evento.inscricaoAtiva ?? false,
         nomeFormulario: evento.nomeFormulario != null ? evento.nomeFormulario.toString() : 'generico',
         nivelCompartilhamento: evento.nivelCompartilhamento != null ? evento.nivelCompartilhamento.toString() : '0',
         horaInicio: !evento.allDay && dataInicio ? format(dataInicio, 'HH:mm') : undefined,
         horaFim: !evento.allDay && dataFim ? format(dataFim, 'HH:mm') : undefined,
+        recorrencia: evento.recorrencia != null ? evento.recorrencia.toString() : '0',
+        fimRecorrencia: evento.fimRecorrencia ? new Date(evento.fimRecorrencia) : undefined,
       });
     }
   }, [evento, form]);
@@ -100,6 +117,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
   const watchAllDay = form.watch('allDay');
   const watchInscricaoAtiva = form.watch('inscricaoAtiva');
   const watchDataInicio = form.watch('dataInicio');
+  const watchRecorrencia = form.watch('recorrencia');
 
   // Auto-preencher data fim quando não for dia inteiro
   useEffect(() => {
@@ -279,7 +297,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                 name="nivelCompartilhamento"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível de Compartilhamento</FormLabel>
+                    <FormLabel className="font-medium mb-2">
+                      Nível de Compartilhamento
+                    </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -434,6 +454,102 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
               </div>
             )}
 
+            {/* Campos de Recorrência - não editáveis se já existe recorrência */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="recorrencia"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      Recorrência
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isRecurring}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a recorrência" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">Não Repete</SelectItem>
+                        <SelectItem value="1">Diariamente</SelectItem>
+                        <SelectItem value="2">Semanalmente</SelectItem>
+                        <SelectItem value="3">Quinzenalmente</SelectItem>
+                        <SelectItem value="4">Mensalmente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {isRecurring && (
+                      <p className="text-xs text-muted-foreground">
+                        Este evento já é recorrente. Use o diálogo de escopo para editar.
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {watchRecorrencia !== '0' && !isRecurring && (
+                <FormField
+                  control={form.control}
+                  name="fimRecorrencia"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Fim da Recorrência *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy")
+                              ) : (
+                                <span>Selecione a data</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
+            {/* Exibir informações da sala vinculada */}
+            {evento.sala && (
+              <div className="p-4 bg-green-50 rounded-lg border">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-base font-medium text-gray-800">Sala Vinculada</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      🏛️ {evento.sala.tipoDeSala?.nome || 'Sala'} - {evento.sala.descricao}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Seção de Inscrições Online - Desabilitada se já existe */}
             {hasOnlineRegistration ? (
               <div className="p-4 bg-gray-50 rounded-lg border">
@@ -502,7 +618,10 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                       name="nomeFormulario"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tipo de Formulário</FormLabel>
+                          <FormLabel className="flex items-center gap-1">
+                            <FileText className="w-4 h-4" />
+                            Tipo de Formulário
+                          </FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -510,10 +629,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="generico">Formulário Genérico</SelectItem>
                               <SelectItem value="0">Preparação para Batismo</SelectItem>
-                              <SelectItem value="1">Preparação para Matrimônio</SelectItem>
-                              <SelectItem value="2">Catequese</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
