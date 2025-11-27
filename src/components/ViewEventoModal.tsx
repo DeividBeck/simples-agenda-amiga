@@ -37,7 +37,19 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
   if (!evento) return null;
 
   const inscricaoLink = generateInscricaoLink(evento);
-  const isRecurring = evento.recorrencia !== undefined && evento.recorrencia !== ERecorrencia.NaoRepete;
+  // Evento é recorrente se tem recorrência configurada OU se está vinculado a um evento pai
+  const isRecurring =
+    (evento.recorrencia !== undefined && evento.recorrencia !== ERecorrencia.NaoRepete) ||
+    (evento.eventoPaiId !== undefined && evento.eventoPaiId !== null);
+
+  // Recorrência efetiva (usa dados do evento pai quando for ocorrência filha)
+  const effectiveRecorrencia =
+    evento.recorrencia !== undefined && evento.recorrencia !== ERecorrencia.NaoRepete
+      ? evento.recorrencia
+      : evento.eventoPai?.recorrencia;
+
+  const effectiveFimRecorrencia =
+    evento.fimRecorrencia ?? evento.eventoPai?.fimRecorrencia ?? null;
 
   const handleCopyLink = async () => {
     if (inscricaoLink) {
@@ -93,7 +105,7 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
   const formatDataEvento = () => {
     const dataInicio = new Date(evento.dataInicio);
     const dataFim = new Date(evento.dataFim);
-    
+
     if (evento.allDay) {
       return format(dataInicio, "dd/MM/yyyy");
     } else {
@@ -128,12 +140,12 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
         <div className="space-y-6">
           {/* Tipo e Status */}
           <div className="flex items-center gap-3 flex-wrap">
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="flex items-center gap-1"
               style={{ borderColor: evento.tipoEvento.cor, color: evento.tipoEvento.cor }}
             >
-              <div 
+              <div
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: evento.tipoEvento.cor }}
               />
@@ -175,6 +187,55 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
             </div>
           </div>
 
+          {/* Informações de Sala */}
+          {evento.sala && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-medium mb-2">Sala Reservada</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {evento.sala.tipoDeSala?.nome ?? evento.sala.nomeTipoDeSala ?? 'Tipo não especificado'}
+                    </span>
+                  </div>
+                  {evento.sala.descricao && (
+                    <p className="text-sm text-muted-foreground ml-6">
+                      {evento.sala.descricao}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Informações de Recorrência */}
+          {isRecurring && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-medium mb-2">Recorrência</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      {effectiveRecorrencia === ERecorrencia.Diariamente && 'Repete diariamente'}
+                      {effectiveRecorrencia === ERecorrencia.Semanalmente && 'Repete semanalmente'}
+                      {effectiveRecorrencia === ERecorrencia.Quinzenalmente && 'Repete quinzenalmente'}
+                      {effectiveRecorrencia === ERecorrencia.Mensalmente && 'Repete mensalmente'}
+                    </span>
+                  </div>
+                  {effectiveFimRecorrencia && (
+                    <p className="text-sm text-muted-foreground ml-6">
+                      Até {format(new Date(effectiveFimRecorrencia), "dd/MM/yyyy")}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Link de Inscrição */}
           {evento.inscricaoAtiva && inscricaoLink && (
             <>
@@ -184,8 +245,8 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
                 <div className="flex flex-col sm:flex-row items-center gap-2 p-3 bg-muted rounded-md">
                   <div className="flex items-center gap-2 w-full">
                     <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={inscricaoLink}
                       readOnly
                       className="flex-1 bg-transparent text-sm min-w-0"
@@ -216,28 +277,28 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
 
           {/* Botões */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onClose}
               className="flex-1 order-3 sm:order-1"
             >
               Fechar
             </Button>
-            
+
             <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
               {canEdit && onEdit && (
-                <Button 
+                <Button
                   onClick={onEdit}
                   className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                 >
                   Editar Evento
                 </Button>
               )}
-              
+
               {canDeleteEventos() && (
                 <>
                   {isRecurring ? (
-                    <Button 
+                    <Button
                       variant="destructive"
                       className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                       onClick={handleDeleteClick}
@@ -248,7 +309,7 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
                   ) : (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button 
+                        <Button
                           variant="destructive"
                           className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                         >
@@ -260,7 +321,7 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Tem certeza que deseja excluir o evento "{evento.titulo}"? 
+                            Tem certeza que deseja excluir o evento "{evento.titulo}"?
                             Esta ação não pode ser desfeita.
                           </AlertDialogDescription>
                         </AlertDialogHeader>

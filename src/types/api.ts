@@ -75,6 +75,8 @@ export interface Evento {
   recorrencia?: ERecorrencia;
   fimRecorrencia?: string | null;
   eventoOrigemId?: number | null;
+  eventoPaiId?: number | null;
+  eventoPai?: Evento | null;
   sala?: Sala | null;
   salaId?: number | null;
 }

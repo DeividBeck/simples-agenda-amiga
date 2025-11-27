@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Copy, Clock, Users, FileText } from 'lucide-react';
+import { CalendarIcon, Copy, Clock, Users, FileText, Building } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,6 +34,10 @@ const formSchema = z.object({
   nivelCompartilhamento: z.string().default('0'),
   recorrencia: z.string().default('0'),
   fimRecorrencia: z.date().optional(),
+  // Campos de sala
+  salaAtiva: z.boolean().default(false),
+  tipoDeSalaId: z.string().optional(),
+  salaDescricao: z.string().optional(),
 }).refine((data) => {
   // Validação personalizada: se não for dia inteiro, horários são obrigatórios
   if (!data.allDay) {
@@ -52,6 +56,15 @@ const formSchema = z.object({
 }, {
   message: "Data de fim da recorrência é obrigatória quando evento é recorrente",
   path: ["fimRecorrencia"],
+}).refine((data) => {
+  // Validação: se sala ativa, tipo de sala é obrigatório
+  if (data.salaAtiva) {
+    return !!data.tipoDeSalaId;
+  }
+  return true;
+}, {
+  message: "Tipo de sala é obrigatório quando reserva de sala está ativa",
+  path: ["tipoDeSalaId"],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -83,6 +96,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
       nivelCompartilhamento: '0',
       recorrencia: '0',
       fimRecorrencia: undefined,
+      salaAtiva: false,
+      tipoDeSalaId: '',
+      salaDescricao: '',
     },
   });
 
@@ -94,6 +110,15 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
     if (evento) {
       const dataInicio = new Date(evento.dataInicio);
       const dataFim = new Date(evento.dataFim);
+
+      // Para eventos filhos, usar recorrência do pai
+      const recorrenciaValue = evento.eventoPaiId != null && evento.eventoPai
+        ? evento.eventoPai.recorrencia?.toString() ?? '0'
+        : evento.recorrencia?.toString() ?? '0';
+
+      const fimRecorrenciaValue = evento.eventoPaiId != null && evento.eventoPai
+        ? evento.eventoPai.fimRecorrencia ? new Date(evento.eventoPai.fimRecorrencia) : undefined
+        : evento.fimRecorrencia ? new Date(evento.fimRecorrencia) : undefined;
 
       form.reset({
         titulo: evento.titulo || '',
@@ -108,8 +133,12 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         nivelCompartilhamento: evento.nivelCompartilhamento != null ? evento.nivelCompartilhamento.toString() : '0',
         horaInicio: !evento.allDay && dataInicio ? format(dataInicio, 'HH:mm') : undefined,
         horaFim: !evento.allDay && dataFim ? format(dataFim, 'HH:mm') : undefined,
-        recorrencia: evento.recorrencia != null ? evento.recorrencia.toString() : '0',
-        fimRecorrencia: evento.fimRecorrencia ? new Date(evento.fimRecorrencia) : undefined,
+        recorrencia: recorrenciaValue,
+        fimRecorrencia: fimRecorrenciaValue,
+        // Campos de sala
+        salaAtiva: !!evento.sala,
+        tipoDeSalaId: evento.sala?.tipoDeSalaId?.toString() || '',
+        salaDescricao: evento.sala?.descricao || '',
       });
     }
   }, [evento, form]);
@@ -118,6 +147,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
   const watchInscricaoAtiva = form.watch('inscricaoAtiva');
   const watchDataInicio = form.watch('dataInicio');
   const watchRecorrencia = form.watch('recorrencia');
+  const watchSalaAtiva = form.watch('salaAtiva');
 
   // Auto-preencher data fim quando não for dia inteiro
   useEffect(() => {
@@ -140,7 +170,11 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
     }
   };
 
-  const isRecurring = evento && evento.recorrencia !== undefined && evento.recorrencia !== ERecorrencia.NaoRepete;
+  // Evento é recorrente se: tem recorrencia > 0 OU se é filho de um evento recorrente (eventoPaiId != null)
+  const isRecurring = evento && (
+    (evento.recorrencia !== undefined && evento.recorrencia !== ERecorrencia.NaoRepete) ||
+    evento.eventoPaiId != null
+  );
 
   const onSubmit = async (data: FormData) => {
     if (!evento) return;
@@ -174,6 +208,15 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         dataFim.setHours(horaF, minutoF, 0, 0);
       }
 
+      // Preparar novaSala se sala estiver ativa
+      const novaSala = data.salaAtiva && data.tipoDeSalaId ? {
+        descricao: data.salaDescricao || '',
+        tipoDeSalaId: parseInt(data.tipoDeSalaId),
+        dataInicio: dataInicio.toISOString(),
+        dataFim: dataFim.toISOString(),
+        allDay: data.allDay,
+      } : null;
+
       // Preparar dados no formato que funciona (conforme Postman)
       const eventoAtualizado = {
         titulo: data.titulo,
@@ -187,6 +230,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         nomeFormulario: hasOnlineRegistration ? evento.nomeFormulario : (data.nomeFormulario && data.nomeFormulario !== 'generico' ? parseInt(data.nomeFormulario) as ENomeFormulario : null),
         slug: evento.slug, // Manter o slug original
         nivelCompartilhamento: parseInt(data.nivelCompartilhamento) as ENivelCompartilhamento,
+        novaSala: novaSala,
       };
 
       await updateEvento.mutateAsync({
@@ -485,7 +529,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                     </Select>
                     {isRecurring && (
                       <p className="text-xs text-muted-foreground">
-                        Este evento já é recorrente. Use o diálogo de escopo para editar.
+                        {evento?.eventoPaiId != null
+                          ? 'Este evento faz parte de uma série recorrente.'
+                          : 'Este evento já é recorrente. Use o diálogo de escopo para editar.'}
                       </p>
                     )}
                     <FormMessage />
@@ -536,17 +582,80 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
               )}
             </div>
 
-            {/* Exibir informações da sala vinculada */}
-            {evento.sala && (
-              <div className="p-4 bg-green-50 rounded-lg border">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h3 className="text-base font-medium text-gray-800">Sala Vinculada</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      🏛️ {evento.sala.tipoDeSala?.nome || 'Sala'} - {evento.sala.descricao}
-                    </p>
+            {/* Seção de Reserva de Sala - Editável */}
+            <FormField
+              control={form.control}
+              name="salaAtiva"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Reserva de Sala</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Vincular uma sala a este evento
+                    </div>
                   </div>
-                </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {watchSalaAtiva && (
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg space-y-4 border border-green-200 dark:border-green-800">
+                <FormField
+                  control={form.control}
+                  name="tipoDeSalaId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Sala *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo de sala" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {tiposSalas?.map(tipo => (
+                            <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: tipo.cor }}
+                                />
+                                {tipo.nome} (Cap: {tipo.capacidade})
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="salaDescricao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição da Reserva</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Descrição ou observação sobre a reserva..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {isRecurring && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    ⚠️ Ao editar a sala de um evento recorrente, a mudança será aplicada de acordo com o escopo selecionado (este, este e futuros, ou todos).
+                  </p>
+                )}
               </div>
             )}
 

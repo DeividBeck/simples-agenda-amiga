@@ -26,6 +26,8 @@ export const RecurrenceScopeDialog: React.FC<RecurrenceScopeDialogProps> = ({
   type,
   eventTitle,
 }) => {
+  console.log('RecurrenceScopeDialog - isOpen:', isOpen, 'type:', type);
+
   const isEdit = type === 'edit';
   const title = isEdit ? 'Editar Evento Recorrente' : 'Excluir Evento Recorrente';
   const description = isEdit
@@ -33,6 +35,7 @@ export const RecurrenceScopeDialog: React.FC<RecurrenceScopeDialogProps> = ({
     : `Como você deseja excluir "${eventTitle}"?`;
 
   const handleScope = (scope: number) => {
+    console.log('RecurrenceScopeDialog - handleScope:', scope);
     onConfirm(scope);
     onClose();
   };

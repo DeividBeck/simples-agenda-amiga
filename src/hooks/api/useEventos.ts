@@ -147,6 +147,13 @@ interface UpdateEventoData {
   nomeFormulario?: number | null;
   slug?: string | null;
   nivelCompartilhamento: number;
+  novaSala?: {
+    descricao: string;
+    tipoDeSalaId: number;
+    dataInicio: string;
+    dataFim: string;
+    allDay: boolean;
+  } | null;
 }
 
 // Hook para atualizar evento - CORRIGIDO
@@ -178,7 +185,8 @@ export const useUpdateEvento = () => {
         inscricaoAtiva: data.inscricaoAtiva,
         nomeFormulario: data.nomeFormulario || null,
         slug: data.slug || null,
-        nivelCompartilhamento: data.nivelCompartilhamento
+        nivelCompartilhamento: data.nivelCompartilhamento,
+        novaSala: data.novaSala || null
       };
 
       const queryParam = scope !== undefined ? `?scope=${scope}` : '';
@@ -191,6 +199,7 @@ export const useUpdateEvento = () => {
       queryClient.invalidateQueries({ queryKey: ['eventos', filialSelecionada] });
       queryClient.invalidateQueries({ queryKey: ['evento', filialSelecionada, id] });
       queryClient.invalidateQueries({ queryKey: ['eventosPublicos', filialSelecionada] });
+      queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
     },
     onError: (error) => {
       console.error('5. Erro capturado no onError (atualização):', error);
