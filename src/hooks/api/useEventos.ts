@@ -127,9 +127,25 @@ export const useCreateEvento = () => {
       queryClient.invalidateQueries({ queryKey: ['eventos', filialSelecionada] });
       queryClient.invalidateQueries({ queryKey: ['eventosPublicos', filialSelecionada] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro ao criar evento:', error);
-      throw error; // Repassar o erro para o componente que chamou o hook
+
+      // Extrair mensagem amigável do erro
+      let errorMessage = 'Erro ao criar evento';
+
+      if (error.message && error.message.includes('API Error:')) {
+        try {
+          const jsonMatch = error.message.match(/\{.*\}/);
+          if (jsonMatch) {
+            const errorData = JSON.parse(jsonMatch[0]);
+            errorMessage = errorData.message || errorMessage;
+          }
+        } catch (e) {
+          errorMessage = error.message.replace(/API Error: \d+ - /, '');
+        }
+      }
+
+      throw new Error(errorMessage);
     },
   });
 };
@@ -227,6 +243,7 @@ export const useDeleteEvento = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eventos', filialSelecionada] });
       queryClient.invalidateQueries({ queryKey: ['eventosPublicos', filialSelecionada] });
+      queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
     },
   });
 };

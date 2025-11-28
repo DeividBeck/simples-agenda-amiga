@@ -107,6 +107,16 @@ export interface Sala {
   dataCriacao: string;
 }
 
+export interface StatusSala {
+  id: number;
+  descricao: string;
+  dataInicio: string;
+  dataFim: string;
+  tipoDeSalaId: string;
+  nomeTipoDeSala: string | null;
+  status: EStatusReserva;
+}
+
 export interface CreateEventoRequest {
   titulo: string;
   descricao: string;
