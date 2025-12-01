@@ -17,11 +17,13 @@ import { EditTipoEventoModal } from './EditTipoEventoModal';
 import { useTiposEventos, useCreateTipoEvento, useDeleteTipoEvento } from '@/hooks/useApi';
 import { useClaims } from '@/hooks/useClaims';
 import { useToast } from '@/hooks/use-toast';
-import { TipoEvento } from '@/types/api';
+import { TipoEvento, ETipoContrato } from '@/types/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
   cor: z.string().min(1, 'Cor é obrigatória'),
+  categoriaContrato: z.nativeEnum(ETipoContrato),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -46,6 +48,7 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
     defaultValues: {
       nome: '',
       cor: '#3b82f6',
+      categoriaContrato: ETipoContrato.Nenhum,
     },
   });
 
@@ -54,6 +57,7 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
       await createTipoEvento.mutateAsync({
         nome: data.nome,
         cor: data.cor,
+        categoriaContrato: data.categoriaContrato,
       });
 
       toast({
@@ -206,6 +210,32 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
                       )}
                     />
 
+                    <FormField
+                      control={form.control}
+                      name="categoriaContrato"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Categoria de Contrato</FormLabel>
+                          <Select 
+                            value={field.value.toString()} 
+                            onValueChange={(value) => field.onChange(parseInt(value))}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione a categoria" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={ETipoContrato.Nenhum.toString()}>Nenhum</SelectItem>
+                              <SelectItem value={ETipoContrato.Casamento.toString()}>Casamento</SelectItem>
+                              <SelectItem value={ETipoContrato.Diverso.toString()}>Diverso</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <div className="flex gap-3 pt-4">
                       <Button 
                         type="button" 
@@ -316,15 +346,22 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
                          )}
                        </div>
                        
-                       <Badge 
-                         style={{ 
-                           backgroundColor: tipo.cor + '20',
-                           color: tipo.cor,
-                           border: `1px solid ${tipo.cor}40`
-                         }}
-                       >
-                         ID: {tipo.id}
-                       </Badge>
+                        <div className="flex gap-2 flex-wrap">
+                          <Badge 
+                            style={{ 
+                              backgroundColor: tipo.cor + '20',
+                              color: tipo.cor,
+                              border: `1px solid ${tipo.cor}40`
+                            }}
+                          >
+                            ID: {tipo.id}
+                          </Badge>
+                          <Badge variant="outline">
+                            {tipo.categoriaContrato === ETipoContrato.Casamento && 'Casamento'}
+                            {tipo.categoriaContrato === ETipoContrato.Diverso && 'Diverso'}
+                            {tipo.categoriaContrato === ETipoContrato.Nenhum && 'Nenhum'}
+                          </Badge>
+                        </div>
                     </CardContent>
                   </Card>
                 ))}

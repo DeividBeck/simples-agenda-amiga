@@ -10,11 +10,13 @@ import { Input } from '@/components/ui/input';
 import { ColorSelector } from './ColorSelector';
 import { useUpdateTipoEvento } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
-import { TipoEvento } from '@/types/api';
+import { TipoEvento, ETipoContrato } from '@/types/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
   cor: z.string().min(1, 'Cor é obrigatória'),
+  categoriaContrato: z.nativeEnum(ETipoContrato),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -38,6 +40,7 @@ export const EditTipoEventoModal: React.FC<EditTipoEventoModalProps> = ({
     defaultValues: {
       nome: '',
       cor: '#22c55e',
+      categoriaContrato: ETipoContrato.Nenhum,
     },
   });
 
@@ -47,6 +50,7 @@ export const EditTipoEventoModal: React.FC<EditTipoEventoModalProps> = ({
       form.reset({
         nome: tipoEvento.nome,
         cor: tipoEvento.cor,
+        categoriaContrato: tipoEvento.categoriaContrato,
       });
     }
   }, [tipoEvento, form]);
@@ -59,6 +63,7 @@ export const EditTipoEventoModal: React.FC<EditTipoEventoModalProps> = ({
         ...tipoEvento,
         nome: data.nome,
         cor: data.cor,
+        categoriaContrato: data.categoriaContrato,
       };
 
       await updateTipoEvento.mutateAsync({ id: tipoEvento.id, data: updatedData });
@@ -120,6 +125,32 @@ export const EditTipoEventoModal: React.FC<EditTipoEventoModalProps> = ({
                   onChange={field.onChange}
                   label="Cor do Evento"
                 />
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="categoriaContrato"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria de Contrato</FormLabel>
+                  <Select 
+                    value={field.value.toString()} 
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={ETipoContrato.Nenhum.toString()}>Nenhum</SelectItem>
+                      <SelectItem value={ETipoContrato.Casamento.toString()}>Casamento</SelectItem>
+                      <SelectItem value={ETipoContrato.Diverso.toString()}>Diverso</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
             />
 
