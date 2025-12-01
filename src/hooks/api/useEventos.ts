@@ -163,6 +163,12 @@ interface UpdateEventoData {
   nomeFormulario?: number | null;
   slug?: string | null;
   nivelCompartilhamento: number;
+  recorrencia?: number;
+  fimRecorrencia?: string | null;
+  eventoPaiId?: number | null;
+  filialId?: number;
+  tipoEvento?: any;
+  sala?: any;
   novaSala?: {
     descricao: string;
     tipoDeSalaId: number;
@@ -170,9 +176,9 @@ interface UpdateEventoData {
     dataFim: string;
     allDay: boolean;
   } | null;
+  [key: string]: any;
 }
 
-// Hook para atualizar evento - CORRIGIDO
 export const useUpdateEvento = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
@@ -189,22 +195,12 @@ export const useUpdateEvento = () => {
         new Date(data.dataFim).toISOString() :
         new Date(data.dataFim + 'T23:59:59').toISOString();
 
-      // Estrutura conforme funcionou no Postman
-      const requestData: UpdateEventoData = {
-        id: id,
-        titulo: data.titulo,
-        descricao: data.descricao,
+      const requestData = {
+        ...(data as UpdateEventoData),
+        id,
         dataInicio: dataInicioISO,
         dataFim: dataFimISO,
-        allDay: data.allDay,
-        tipoEventoId: data.tipoEventoId,
-        inscricaoAtiva: data.inscricaoAtiva,
-        nomeFormulario: data.nomeFormulario || null,
-        slug: data.slug || null,
-        nivelCompartilhamento: data.nivelCompartilhamento,
-        novaSala: data.novaSala || null
-      };
-
+      } as UpdateEventoData;
       const queryParam = scope !== undefined ? `?scope=${scope}` : '';
       return fetchApi(`/${filialSelecionada}/Eventos/${id}${queryParam}`, token, {
         method: 'PUT',

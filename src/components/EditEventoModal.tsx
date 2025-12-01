@@ -219,6 +219,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
 
       // Preparar dados no formato que funciona (conforme Postman)
       const eventoAtualizado = {
+        ...evento,
         titulo: data.titulo,
         descricao: data.descricao,
         dataInicio: dataInicio.toISOString(),
@@ -231,6 +232,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         slug: evento.slug, // Manter o slug original
         nivelCompartilhamento: parseInt(data.nivelCompartilhamento) as ENivelCompartilhamento,
         novaSala: novaSala,
+        tipoEvento: evento.tipoEvento,
       };
 
       await updateEvento.mutateAsync({
