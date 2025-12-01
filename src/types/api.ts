@@ -1,7 +1,14 @@
+export enum ETipoContrato {
+  Nenhum = 0,
+  Casamento = 1,
+  Diverso = 2
+}
+
 export interface TipoEvento {
   id: number;
   nome: string;
   cor: string;
+  categoriaContrato: ETipoContrato;
 }
 
 export interface Filial {
