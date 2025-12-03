@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Settings, List, Filter, Menu, MapPin, Users, Building2, Loader, Share2, Lock, LogOut, ChevronDown, User, Bell } from 'lucide-react';
+import { Calendar, Plus, Settings, List, Filter, Menu, MapPin, Users, Building2, Loader, Share2, Lock, LogOut, ChevronDown, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,7 +17,7 @@ import { EditSalaModal } from './EditSalaModal';
 import { TiposEventosModal } from './TiposEventosModal';
 import { TiposSalasModal } from './TiposSalasModal';
 import { TiposSelectionModal } from './TiposSelectionModal';
-import { SolicitacoesPendentesModal } from './SolicitacoesPendentesModal';
+import { NotificationsDropdown } from './NotificationsDropdown';
 import { InteressadosModal } from './InteressadosModal';
 import { FullCalendarView } from './FullCalendarView';
 import { PWAInstallBanner } from './PWAInstallBanner';
@@ -40,7 +40,7 @@ export const Dashboard = () => {
   const [showTiposSalasModal, setShowTiposSalasModal] = useState(false);
   const [showCadastroUsuarioModal, setShowCadastroUsuarioModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [showSolicitacoesPendentesModal, setShowSolicitacoesPendentesModal] = useState(false);
+
   const [showInteressadosModal, setShowInteressadosModal] = useState(false);
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
   const [viewingEvento, setViewingEvento] = useState<Evento | null>(null);
@@ -298,28 +298,6 @@ export const Dashboard = () => {
             </div>}
           </div>
 
-          {/* Solicitações Pendentes */}
-          {canReadSalas() && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">Notificações</h3>
-
-              <Button
-                onClick={() => {
-                  setShowSolicitacoesPendentesModal(true);
-                }}
-                variant="outline"
-                className="w-full justify-start relative"
-              >
-                <Bell className="h-4 w-4 mr-3" />
-                Solicitações Pendentes
-                {salasPendentes && salasPendentes.length > 0 && (
-                  <Badge className="ml-auto bg-orange-500">
-                    {salasPendentes.length}
-                  </Badge>
-                )}
-              </Button>
-            </div>
-          )}
 
           {/* Ações de Criar */}
           <div className="space-y-4">
@@ -440,22 +418,8 @@ export const Dashboard = () => {
               </div>}
             </div>
 
-            {/* Botão de Solicitações Pendentes */}
-            {canReadSalas() && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowSolicitacoesPendentesModal(true)}
-                className="relative"
-              >
-                <Bell className="h-4 w-4" />
-                {salasPendentes && salasPendentes.length > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-orange-500">
-                    {salasPendentes.length}
-                  </Badge>
-                )}
-              </Button>
-            )}
+            {/* Notificações Dropdown */}
+            {canReadSalas() && <NotificationsDropdown />}
 
             {/* Ações de Criação */}
             <DropdownMenu>
@@ -684,7 +648,7 @@ export const Dashboard = () => {
 
     <TiposSalasModal isOpen={showTiposSalasModal} onClose={() => setShowTiposSalasModal(false)} />
 
-    <SolicitacoesPendentesModal isOpen={showSolicitacoesPendentesModal} onClose={() => setShowSolicitacoesPendentesModal(false)} />
+
 
     <ChangePasswordModal isOpen={showChangePasswordModal} onClose={() => setShowChangePasswordModal(false)} />
 

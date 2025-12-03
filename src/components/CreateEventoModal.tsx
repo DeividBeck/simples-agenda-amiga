@@ -522,7 +522,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                         {interessadoSelecionado && (
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="destructive"
                             size="sm"
                             className="mt-2"
                             onClick={handleClearInteressado}
