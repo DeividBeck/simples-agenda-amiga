@@ -115,7 +115,8 @@ export const useCreateEvento = () => {
         nivelCompartilhamento: data.nivelCompartilhamento,
         recorrencia: data.recorrencia || 0,
         fimRecorrencia: data.fimRecorrencia || null,
-        novaSala: data.novaSala || null
+        novaSala: data.novaSala || null,
+        interessadoId: data.interessadoId || null,
       };
 
       return fetchApi(`/${filialSelecionada}/Eventos`, token, {

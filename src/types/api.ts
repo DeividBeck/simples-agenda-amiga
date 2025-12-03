@@ -94,6 +94,8 @@ export interface Evento {
   eventoPai?: Evento | null;
   sala?: Sala | null;
   salaId?: number | null;
+  interessadoId?: number | null;
+  interessado?: Interessado | null;
 }
 
 export interface TipoDeSala {
@@ -151,6 +153,7 @@ export interface CreateEventoRequest {
     dataFim: string;
     allDay: boolean;
   } | null;
+  interessadoId?: number | null;
 }
 
 export interface CreateSalaRequest {
