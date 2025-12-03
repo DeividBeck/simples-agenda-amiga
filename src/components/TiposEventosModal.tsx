@@ -95,7 +95,7 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
         variant: 'destructive',
       });
     }
-  };  
+  };
 
   const handleClose = () => {
     setShowForm(false);
@@ -150,7 +150,7 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
               Tipos de Eventos
             </div>
             {canCreateTiposEventos() ? (
-              <Button 
+              <Button
                 onClick={handleCreateClick}
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700"
@@ -159,7 +159,7 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
                 Novo Tipo
               </Button>
             ) : (
-              <Button 
+              <Button
                 disabled
                 size="sm"
                 variant="outline"
@@ -216,8 +216,8 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Categoria de Contrato</FormLabel>
-                          <Select 
-                            value={field.value.toString()} 
+                          <Select
+                            value={field.value.toString()}
                             onValueChange={(value) => field.onChange(parseInt(value))}
                           >
                             <FormControl>
@@ -237,16 +237,16 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
                     />
 
                     <div className="flex gap-3 pt-4">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         onClick={() => setShowForm(false)}
                         className="flex-1"
                       >
                         Cancelar
                       </Button>
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         disabled={createTipoEvento.isPending}
                         className="flex-1 bg-blue-600 hover:bg-blue-700"
                       >
@@ -265,7 +265,7 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
               <Palette className="h-5 w-5" />
               Tipos Existentes ({tiposEventos?.length || 0})
             </h3>
-            
+
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(3)].map((_, i) => (
@@ -287,81 +287,72 @@ export const TiposEventosModal: React.FC<TiposEventosModalProps> = ({ isOpen, on
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                 {tiposEventos?.map(tipo => (
-                   <Card key={tipo.id} className="hover:shadow-md transition-shadow">
-                     <CardContent className="p-6">
-                       <div className="flex items-center justify-between mb-3">
-                         <div className="flex items-center gap-3">
-                           <div 
-                             className="w-6 h-6 rounded-full"
-                             style={{ backgroundColor: tipo.cor }}
-                           />
-                           <h4 className="font-semibold text-gray-800">{tipo.nome}</h4>
-                         </div>
-                         
-                         {(canEditTiposEventos() || canDeleteTiposEventos()) && (
-                           <DropdownMenu>
-                             <DropdownMenuTrigger asChild>
-                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                 <MoreVertical className="h-4 w-4" />
-                               </Button>
-                             </DropdownMenuTrigger>
-                             <DropdownMenuContent align="end" className="bg-white">
-                               {canEditTiposEventos() && (
-                                 <DropdownMenuItem onClick={() => handleEditTipoEvento(tipo)}>
-                                   <Edit className="h-4 w-4 mr-2" />
-                                   Editar
-                                 </DropdownMenuItem>
-                               )}
-                               {canDeleteTiposEventos() && (
-                                 <AlertDialog>
-                                   <AlertDialogTrigger asChild>
-                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                       <Trash2 className="h-4 w-4 mr-2" />
-                                       Excluir
-                                     </DropdownMenuItem>
-                                   </AlertDialogTrigger>
-                                   <AlertDialogContent>
-                                     <AlertDialogHeader>
-                                       <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                       <AlertDialogDescription>
-                                         Tem certeza que deseja excluir o tipo de evento "{tipo.nome}"? 
-                                         Esta ação não pode ser desfeita e pode afetar eventos existentes.
-                                       </AlertDialogDescription>
-                                     </AlertDialogHeader>
-                                     <AlertDialogFooter>
-                                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                       <AlertDialogAction
-                                         onClick={() => handleDeleteTipoEvento(tipo.id, tipo.nome)}
-                                         className="bg-red-600 hover:bg-red-700"
-                                       >
-                                         Excluir
-                                       </AlertDialogAction>
-                                     </AlertDialogFooter>
-                                   </AlertDialogContent>
-                                 </AlertDialog>
-                               )}
-                             </DropdownMenuContent>
-                           </DropdownMenu>
-                         )}
-                       </div>
-                       
-                        <div className="flex gap-2 flex-wrap">
-                          <Badge 
-                            style={{ 
-                              backgroundColor: tipo.cor + '20',
-                              color: tipo.cor,
-                              border: `1px solid ${tipo.cor}40`
-                            }}
-                          >
-                            ID: {tipo.id}
-                          </Badge>
-                          <Badge variant="outline">
-                            {tipo.categoriaContrato === ETipoContrato.Casamento && 'Casamento'}
-                            {tipo.categoriaContrato === ETipoContrato.Diverso && 'Diverso'}
-                            {tipo.categoriaContrato === ETipoContrato.Nenhum && 'Nenhum'}
-                          </Badge>
+                {tiposEventos?.map(tipo => (
+                  <Card key={tipo.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-6 h-6 rounded-full"
+                            style={{ backgroundColor: tipo.cor }}
+                          />
+                          <h4 className="font-semibold text-gray-800">{tipo.nome}</h4>
                         </div>
+
+                        {(canEditTiposEventos() || canDeleteTiposEventos()) && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-white">
+                              {canEditTiposEventos() && (
+                                <DropdownMenuItem onClick={() => handleEditTipoEvento(tipo)}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                              )}
+                              {canDeleteTiposEventos() && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Excluir
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Tem certeza que deseja excluir o tipo de evento "{tipo.nome}"?
+                                        Esta ação não pode ser desfeita e pode afetar eventos existentes.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteTipoEvento(tipo.id, tipo.nome)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Excluir
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 flex-wrap">
+                        <Badge variant="outline">
+                          {tipo.categoriaContrato === ETipoContrato.Casamento && 'Casamento'}
+                          {tipo.categoriaContrato === ETipoContrato.Diverso && 'Diverso'}
+                          {tipo.categoriaContrato === ETipoContrato.Nenhum && 'Nenhum'}
+                        </Badge>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
