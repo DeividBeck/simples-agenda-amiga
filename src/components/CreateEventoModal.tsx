@@ -265,7 +265,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       }
     }
 
-    const data: CreateEventoRequest & { interessadoId?: number } = {
+    const data: CreateEventoRequest = {
       titulo: values.titulo,
       descricao: values.descricao,
       dataInicio: dataInicio.toISOString(),
@@ -284,10 +284,10 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
         dataFim: dataFim.toISOString(),
         allDay: values.allDay
       } : null,
-      interessadoId: interessadoId,
+      interessadoId: interessadoId || null,
     };
 
-    createEvento.mutate(data as CreateEventoRequest, {
+    createEvento.mutate(data, {
       onSuccess: () => {
         if (showInteressadoSection && interessadoId) {
           toast({
