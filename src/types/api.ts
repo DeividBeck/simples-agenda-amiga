@@ -11,6 +11,14 @@ export interface TipoEvento {
   categoriaContrato: ETipoContrato;
 }
 
+export interface Interessado {
+  id: number;
+  nome: string;
+  documento: string;
+  telefone: string;
+  email: string;
+}
+
 export interface Filial {
   id: number;
   empresaId: number;

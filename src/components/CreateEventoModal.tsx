@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Copy } from 'lucide-react';
+import { CalendarIcon, Copy, User, ChevronDown, Search } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -15,13 +15,49 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useCreateEvento, useTiposEventos, useTiposDeSalas } from '@/hooks/useApi';
-import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia } from '@/types/api';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado } from '@/hooks/useApi';
+import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Clock, Users, FileText } from 'lucide-react';
+import { Loader2, Clock, Users, FileText, Mail, Phone, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Schema atualizado com validações mais rigorosas, incluindo recorrência e sala
+// Funções de formatação
+const formatCpfCnpj = (value: string): string => {
+  const numbers = value.replace(/\D/g, '');
+  if (numbers.length <= 11) {
+    // CPF: XXX.XXX.XXX-XX
+    return numbers
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  } else {
+    // CNPJ: XX.XXX.XXX/XXXX-XX
+    return numbers
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+  }
+};
+
+const formatTelefone = (value: string): string => {
+  const numbers = value.replace(/\D/g, '');
+  if (numbers.length <= 10) {
+    // Telefone fixo: (XX) XXXX-XXXX
+    return numbers
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d{1,4})$/, '$1-$2');
+  } else {
+    // Celular: (XX) XXXXX-XXXX
+    return numbers
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d{1,4})$/, '$1-$2');
+  }
+};
+
+// Schema atualizado com validações mais rigorosas, incluindo interessado
 const schema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
   descricao: z.string().min(1, 'Descrição é obrigatória'),
@@ -39,8 +75,13 @@ const schema = z.object({
   vincularSala: z.boolean().default(false),
   tipoDeSalaId: z.string().optional(),
   descricaoSala: z.string().optional(),
+  // Campos do interessado
+  interessadoId: z.number().optional(),
+  interessadoNome: z.string().optional(),
+  interessadoDocumento: z.string().optional(),
+  interessadoTelefone: z.string().optional(),
+  interessadoEmail: z.string().optional(),
 }).refine((data) => {
-  // Validação personalizada: se não for dia inteiro, horários são obrigatórios
   if (!data.allDay) {
     return data.horaInicio && data.horaFim;
   }
@@ -49,7 +90,6 @@ const schema = z.object({
   message: "Horário de início e fim são obrigatórios quando não for evento de dia inteiro",
   path: ["horaInicio"],
 }).refine((data) => {
-  // Validação: se recorrência for ativada, data fim de recorrência é obrigatória
   if (data.recorrencia !== '0') {
     return data.fimRecorrencia;
   }
@@ -58,7 +98,6 @@ const schema = z.object({
   message: "Data de fim da recorrência é obrigatória quando evento é recorrente",
   path: ["fimRecorrencia"],
 }).refine((data) => {
-  // Validação: se vincular sala, tipo e descrição são obrigatórios
   if (data.vincularSala) {
     return data.tipoDeSalaId && data.descricaoSala;
   }
@@ -79,8 +118,14 @@ interface CreateEventoModalProps {
 export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, onClose, initialDate }) => {
   const { toast } = useToast();
   const createEvento = useCreateEvento();
+  const createInteressado = useCreateInteressado();
   const { data: tiposEventos, isLoading: loadingTipos } = useTiposEventos();
   const { data: tiposSalas } = useTiposDeSalas();
+  const { data: interessados } = useInteressados();
+  
+  const [searchInteressado, setSearchInteressado] = useState('');
+  const [interessadoSelecionado, setInteressadoSelecionado] = useState<Interessado | null>(null);
+  const [showInteressadoSearch, setShowInteressadoSearch] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -101,6 +146,11 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       vincularSala: false,
       tipoDeSalaId: '',
       descricaoSala: '',
+      interessadoId: undefined,
+      interessadoNome: '',
+      interessadoDocumento: '',
+      interessadoTelefone: '',
+      interessadoEmail: '',
     }
   });
 
@@ -109,6 +159,27 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const watchDataInicio = form.watch('dataInicio');
   const watchRecorrencia = form.watch('recorrencia');
   const watchVincularSala = form.watch('vincularSala');
+  const watchTipoEventoId = form.watch('tipoEventoId');
+
+  // Verificar se o tipo de evento selecionado tem categoria de contrato
+  const tipoEventoSelecionado = useMemo(() => {
+    if (!watchTipoEventoId || !tiposEventos) return null;
+    return tiposEventos.find(t => t.id.toString() === watchTipoEventoId);
+  }, [watchTipoEventoId, tiposEventos]);
+
+  const showInteressadoSection = tipoEventoSelecionado && 
+    tipoEventoSelecionado.categoriaContrato !== ETipoContrato.Nenhum;
+
+  // Filtrar interessados na busca
+  const interessadosFiltrados = useMemo(() => {
+    if (!interessados || !searchInteressado) return interessados || [];
+    const search = searchInteressado.toLowerCase();
+    return interessados.filter(i => 
+      i.nome.toLowerCase().includes(search) || 
+      i.documento.includes(search) ||
+      i.email.toLowerCase().includes(search)
+    );
+  }, [interessados, searchInteressado]);
 
   // Auto-preencher data fim quando não for dia inteiro
   useEffect(() => {
@@ -125,7 +196,38 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
     }
   }, [initialDate, form]);
 
-  const onSubmit = (values: FormData) => {
+  // Limpar dados do interessado quando trocar tipo de evento
+  useEffect(() => {
+    if (!showInteressadoSection) {
+      setInteressadoSelecionado(null);
+      form.setValue('interessadoId', undefined);
+      form.setValue('interessadoNome', '');
+      form.setValue('interessadoDocumento', '');
+      form.setValue('interessadoTelefone', '');
+      form.setValue('interessadoEmail', '');
+    }
+  }, [showInteressadoSection, form]);
+
+  const handleSelectInteressado = (interessado: Interessado) => {
+    setInteressadoSelecionado(interessado);
+    setShowInteressadoSearch(false);
+    form.setValue('interessadoId', interessado.id);
+    form.setValue('interessadoNome', interessado.nome);
+    form.setValue('interessadoDocumento', interessado.documento);
+    form.setValue('interessadoTelefone', interessado.telefone);
+    form.setValue('interessadoEmail', interessado.email);
+  };
+
+  const handleClearInteressado = () => {
+    setInteressadoSelecionado(null);
+    form.setValue('interessadoId', undefined);
+    form.setValue('interessadoNome', '');
+    form.setValue('interessadoDocumento', '');
+    form.setValue('interessadoTelefone', '');
+    form.setValue('interessadoEmail', '');
+  };
+
+  const onSubmit = async (values: FormData) => {
     let dataInicio = values.dataInicio;
     let dataFim = values.dataFim;
 
@@ -141,7 +243,29 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       dataFim.setHours(horaF, minutoF, 0, 0);
     }
 
-    const data: CreateEventoRequest = {
+    let interessadoId = values.interessadoId;
+
+    // Se tem categoria de contrato e não tem interessado selecionado, criar novo
+    if (showInteressadoSection && !interessadoId && values.interessadoNome && values.interessadoDocumento && values.interessadoTelefone && values.interessadoEmail) {
+      try {
+        const novoInteressado = await createInteressado.mutateAsync({
+          nome: values.interessadoNome,
+          documento: values.interessadoDocumento.replace(/\D/g, ''), // Remover formatação
+          telefone: values.interessadoTelefone.replace(/\D/g, ''), // Remover formatação
+          email: values.interessadoEmail,
+        });
+        interessadoId = novoInteressado.id;
+      } catch (error: any) {
+        toast({
+          title: 'Erro ao criar interessado.',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    const data: CreateEventoRequest & { interessadoId?: number } = {
       titulo: values.titulo,
       descricao: values.descricao,
       dataInicio: dataInicio.toISOString(),
@@ -159,15 +283,24 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
         dataInicio: dataInicio.toISOString(),
         dataFim: dataFim.toISOString(),
         allDay: values.allDay
-      } : null
+      } : null,
+      interessadoId: interessadoId,
     };
 
-    createEvento.mutate(data, {
+    createEvento.mutate(data as CreateEventoRequest, {
       onSuccess: () => {
-        toast({
-          title: 'Evento criado com sucesso!',
-        });
+        if (showInteressadoSection && interessadoId) {
+          toast({
+            title: 'Reserva criada com sucesso!',
+            description: 'Um e-mail de confirmação foi enviado para o interessado.',
+          });
+        } else {
+          toast({
+            title: 'Evento criado com sucesso!',
+          });
+        }
         form.reset();
+        setInteressadoSelecionado(null);
         onClose();
       },
       onError: (error: any) => {
@@ -182,7 +315,19 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
 
   const handleClose = () => {
     form.reset();
+    setInteressadoSelecionado(null);
     onClose();
+  };
+
+  const getCategoriaLabel = (categoria: ETipoContrato) => {
+    switch (categoria) {
+      case ETipoContrato.Casamento:
+        return 'Casamento';
+      case ETipoContrato.Diverso:
+        return 'Diverso';
+      default:
+        return '';
+    }
   };
 
   return (
@@ -256,6 +401,11 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                 style={{ backgroundColor: tipo.cor }}
                               />
                               {tipo.nome}
+                              {tipo.categoriaContrato !== ETipoContrato.Nenhum && (
+                                <Badge variant="outline" className="ml-1 text-xs">
+                                  {getCategoriaLabel(tipo.categoriaContrato)}
+                                </Badge>
+                              )}
                             </div>
                           </SelectItem>
                         ))}
@@ -291,6 +441,188 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                 )}
               />
             </div>
+
+            {/* Seção do Interessado - Aparece apenas quando tipo de evento tem categoria de contrato */}
+            {showInteressadoSection && (
+              <Accordion type="single" defaultValue="interessado" collapsible className="w-full">
+                <AccordionItem value="interessado" className="border rounded-lg">
+                  <AccordionTrigger className="px-4 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>Dados do Interessado</span>
+                      <Badge variant="secondary" className="ml-2">
+                        {getCategoriaLabel(tipoEventoSelecionado!.categoriaContrato)}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="space-y-4">
+                      {/* Busca de interessado existente */}
+                      <div className="relative">
+                        <FormLabel className="mb-2 block">Buscar Interessado Existente</FormLabel>
+                        <Popover open={showInteressadoSearch} onOpenChange={setShowInteressadoSearch}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                              type="button"
+                            >
+                              {interessadoSelecionado ? (
+                                <span className="flex items-center gap-2">
+                                  <Building2 className="h-4 w-4" />
+                                  {interessadoSelecionado.nome}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground flex items-center gap-2">
+                                  <Search className="h-4 w-4" />
+                                  Buscar por nome, documento ou email...
+                                </span>
+                              )}
+                              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0" align="start">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Buscar interessado..." 
+                                value={searchInteressado}
+                                onValueChange={setSearchInteressado}
+                              />
+                              <CommandList>
+                                <CommandEmpty>Nenhum interessado encontrado.</CommandEmpty>
+                                <CommandGroup>
+                                  {interessadosFiltrados?.map((interessado) => (
+                                    <CommandItem
+                                      key={interessado.id}
+                                      value={interessado.nome}
+                                      onSelect={() => handleSelectInteressado(interessado)}
+                                    >
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{interessado.nome}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                          {interessado.documento} • {interessado.email}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        {interessadoSelecionado && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="mt-2"
+                            onClick={handleClearInteressado}
+                          >
+                            Limpar e preencher novo
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="border-t pt-4">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {interessadoSelecionado 
+                            ? 'Dados do interessado selecionado (somente leitura):' 
+                            : 'Ou preencha os dados de um novo interessado:'}
+                        </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="interessadoNome"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Nome / Razão Social *</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Nome completo ou razão social..." 
+                                    {...field} 
+                                    disabled={!!interessadoSelecionado}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="interessadoDocumento"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>CPF / CNPJ *</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="000.000.000-00 ou 00.000.000/0000-00" 
+                                    {...field}
+                                    value={field.value ? formatCpfCnpj(field.value) : ''}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    maxLength={18}
+                                    disabled={!!interessadoSelecionado}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="interessadoTelefone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="flex items-center gap-1">
+                                  <Phone className="h-4 w-4" />
+                                  Telefone *
+                                </FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="(00) 00000-0000" 
+                                    {...field}
+                                    value={field.value ? formatTelefone(field.value) : ''}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    maxLength={15}
+                                    disabled={!!interessadoSelecionado}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="interessadoEmail"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="flex items-center gap-1">
+                                  <Mail className="h-4 w-4" />
+                                  E-mail *
+                                </FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="email"
+                                    placeholder="email@exemplo.com" 
+                                    {...field} 
+                                    disabled={!!interessadoSelecionado}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
 
             <FormField
               control={form.control}
@@ -629,17 +961,17 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                 Cancelar
               </Button>
               <Button
-                disabled={createEvento.isPending}
+                disabled={createEvento.isPending || createInteressado.isPending}
                 type="submit"
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
-                {createEvento.isPending ? (
+                {(createEvento.isPending || createInteressado.isPending) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando...
+                    {createInteressado.isPending ? 'Salvando interessado...' : 'Criando...'}
                   </>
                 ) : (
-                  'Criar Evento'
+                  showInteressadoSection ? 'Criar Reserva' : 'Criar Evento'
                 )}
               </Button>
             </div>
