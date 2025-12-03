@@ -6,7 +6,7 @@ import { fetchApi } from './baseApi';
 // Hook para buscar interessados
 export const useInteressados = () => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
-  
+
   return useQuery({
     queryKey: ['interessados', filialSelecionada],
     queryFn: () => fetchApi(`/${filialSelecionada}/Interessados`, token) as Promise<Interessado[]>,
@@ -17,7 +17,7 @@ export const useInteressados = () => {
 // Hook para buscar interessado por ID
 export const useInteressado = (id: number) => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
-  
+
   return useQuery({
     queryKey: ['interessado', filialSelecionada, id],
     queryFn: () => fetchApi(`/${filialSelecionada}/Interessados/${id}`, token) as Promise<Interessado>,
@@ -29,7 +29,7 @@ export const useInteressado = (id: number) => {
 export const useCreateInteressado = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  
+
   return useMutation({
     mutationFn: (data: Omit<Interessado, 'id'>) => {
       return fetchApi(`/${filialSelecionada}/Interessados`, token, {
@@ -47,12 +47,29 @@ export const useCreateInteressado = () => {
 export const useUpdateInteressado = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Interessado }) => {
       return fetchApi(`/${filialSelecionada}/Interessados/${id}`, token, {
         method: 'PUT',
         body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['interessados', filialSelecionada] });
+    },
+  });
+};
+
+// Hook para deletar interessado
+export const useDeleteInteressado = () => {
+  const queryClient = useQueryClient();
+  const { token, filialSelecionada } = useAuth();
+
+  return useMutation({
+    mutationFn: (id: number) => {
+      return fetchApi(`/${filialSelecionada}/Interessados/${id}`, token, {
+        method: 'DELETE',
       });
     },
     onSuccess: () => {

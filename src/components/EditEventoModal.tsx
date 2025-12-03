@@ -162,15 +162,15 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
     return tiposEventos.find(t => t.id.toString() === watchTipoEventoId);
   }, [watchTipoEventoId, tiposEventos]);
 
-  const showInteressadoSection = tipoEventoSelecionado && 
+  const showInteressadoSection = tipoEventoSelecionado &&
     tipoEventoSelecionado.categoriaContrato !== ETipoContrato.Nenhum;
 
   // Filtrar interessados na busca
   const interessadosFiltrados = useMemo(() => {
     if (!interessados || !searchInteressado) return interessados || [];
     const search = searchInteressado.toLowerCase();
-    return interessados.filter(i => 
-      i.nome.toLowerCase().includes(search) || 
+    return interessados.filter(i =>
+      i.nome.toLowerCase().includes(search) ||
       i.documento.includes(search) ||
       i.email.toLowerCase().includes(search)
     );
@@ -333,6 +333,14 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
             documento: data.interessadoDocumento.replace(/\D/g, ''),
             telefone: data.interessadoTelefone.replace(/\D/g, ''),
             email: data.interessadoEmail,
+            cep: null,
+            rua: null,
+            numero: null,
+            bairro: null,
+            cidade: null,
+            estado: null,
+            pontoReferencia: null,
+            emailFinanceiro: null,
           });
           interessadoId = novoInteressado.id;
         } catch (error: any) {
@@ -543,8 +551,8 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                           </PopoverTrigger>
                           <PopoverContent className="w-full p-0" align="start">
                             <Command>
-                              <CommandInput 
-                                placeholder="Digite para buscar..." 
+                              <CommandInput
+                                placeholder="Digite para buscar..."
                                 value={searchInteressado}
                                 onValueChange={setSearchInteressado}
                               />
@@ -585,7 +593,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
 
                       <div className="border-t pt-4">
                         <p className="text-sm text-muted-foreground mb-4">
-                          {interessadoSelecionado 
+                          {interessadoSelecionado
                             ? 'Dados do interessado selecionado (somente leitura):'
                             : 'Ou preencha os dados para criar um novo interessado:'}
                         </p>
@@ -598,9 +606,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                               <FormItem>
                                 <FormLabel>Nome / Razão Social *</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="Nome completo ou razão social..." 
-                                    {...field} 
+                                  <Input
+                                    placeholder="Nome completo ou razão social..."
+                                    {...field}
                                     disabled={!!interessadoSelecionado}
                                   />
                                 </FormControl>
@@ -616,8 +624,8 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                               <FormItem>
                                 <FormLabel>CPF / CNPJ *</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="000.000.000-00" 
+                                  <Input
+                                    placeholder="000.000.000-00"
                                     {...field}
                                     disabled={!!interessadoSelecionado}
                                     onChange={(e) => {
@@ -639,8 +647,8 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                               <FormItem>
                                 <FormLabel>Telefone *</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="(00) 00000-0000" 
+                                  <Input
+                                    placeholder="(00) 00000-0000"
                                     {...field}
                                     disabled={!!interessadoSelecionado}
                                     onChange={(e) => {
@@ -662,9 +670,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                               <FormItem>
                                 <FormLabel>E-mail *</FormLabel>
                                 <FormControl>
-                                  <Input 
+                                  <Input
                                     type="email"
-                                    placeholder="email@exemplo.com" 
+                                    placeholder="email@exemplo.com"
                                     {...field}
                                     disabled={!!interessadoSelecionado}
                                   />

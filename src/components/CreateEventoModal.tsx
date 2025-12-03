@@ -122,7 +122,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const { data: tiposEventos, isLoading: loadingTipos } = useTiposEventos();
   const { data: tiposSalas } = useTiposDeSalas();
   const { data: interessados } = useInteressados();
-  
+
   const [searchInteressado, setSearchInteressado] = useState('');
   const [interessadoSelecionado, setInteressadoSelecionado] = useState<Interessado | null>(null);
   const [showInteressadoSearch, setShowInteressadoSearch] = useState(false);
@@ -167,15 +167,15 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
     return tiposEventos.find(t => t.id.toString() === watchTipoEventoId);
   }, [watchTipoEventoId, tiposEventos]);
 
-  const showInteressadoSection = tipoEventoSelecionado && 
+  const showInteressadoSection = tipoEventoSelecionado &&
     tipoEventoSelecionado.categoriaContrato !== ETipoContrato.Nenhum;
 
   // Filtrar interessados na busca
   const interessadosFiltrados = useMemo(() => {
     if (!interessados || !searchInteressado) return interessados || [];
     const search = searchInteressado.toLowerCase();
-    return interessados.filter(i => 
-      i.nome.toLowerCase().includes(search) || 
+    return interessados.filter(i =>
+      i.nome.toLowerCase().includes(search) ||
       i.documento.includes(search) ||
       i.email.toLowerCase().includes(search)
     );
@@ -250,9 +250,17 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       try {
         const novoInteressado = await createInteressado.mutateAsync({
           nome: values.interessadoNome,
-          documento: values.interessadoDocumento.replace(/\D/g, ''), // Remover formatação
-          telefone: values.interessadoTelefone.replace(/\D/g, ''), // Remover formatação
+          documento: values.interessadoDocumento.replace(/\D/g, ''),
+          telefone: values.interessadoTelefone.replace(/\D/g, ''),
           email: values.interessadoEmail,
+          cep: null,
+          rua: null,
+          numero: null,
+          bairro: null,
+          cidade: null,
+          estado: null,
+          pontoReferencia: null,
+          emailFinanceiro: null,
         });
         interessadoId = novoInteressado.id;
       } catch (error: any) {
@@ -484,8 +492,8 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                           </PopoverTrigger>
                           <PopoverContent className="w-full p-0" align="start">
                             <Command>
-                              <CommandInput 
-                                placeholder="Buscar interessado..." 
+                              <CommandInput
+                                placeholder="Buscar interessado..."
                                 value={searchInteressado}
                                 onValueChange={setSearchInteressado}
                               />
@@ -526,11 +534,11 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
 
                       <div className="border-t pt-4">
                         <p className="text-sm text-muted-foreground mb-4">
-                          {interessadoSelecionado 
-                            ? 'Dados do interessado selecionado (somente leitura):' 
+                          {interessadoSelecionado
+                            ? 'Dados do interessado selecionado (somente leitura):'
                             : 'Ou preencha os dados de um novo interessado:'}
                         </p>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -539,9 +547,9 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                               <FormItem>
                                 <FormLabel>Nome / Razão Social *</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="Nome completo ou razão social..." 
-                                    {...field} 
+                                  <Input
+                                    placeholder="Nome completo ou razão social..."
+                                    {...field}
                                     disabled={!!interessadoSelecionado}
                                   />
                                 </FormControl>
@@ -557,8 +565,8 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                               <FormItem>
                                 <FormLabel>CPF / CNPJ *</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="000.000.000-00 ou 00.000.000/0000-00" 
+                                  <Input
+                                    placeholder="000.000.000-00 ou 00.000.000/0000-00"
                                     {...field}
                                     value={field.value ? formatCpfCnpj(field.value) : ''}
                                     onChange={(e) => field.onChange(e.target.value)}
@@ -581,8 +589,8 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                   Telefone *
                                 </FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="(00) 00000-0000" 
+                                  <Input
+                                    placeholder="(00) 00000-0000"
                                     {...field}
                                     value={field.value ? formatTelefone(field.value) : ''}
                                     onChange={(e) => field.onChange(e.target.value)}
@@ -605,10 +613,10 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                   E-mail *
                                 </FormLabel>
                                 <FormControl>
-                                  <Input 
+                                  <Input
                                     type="email"
-                                    placeholder="email@exemplo.com" 
-                                    {...field} 
+                                    placeholder="email@exemplo.com"
+                                    {...field}
                                     disabled={!!interessadoSelecionado}
                                   />
                                 </FormControl>

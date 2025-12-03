@@ -15,8 +15,16 @@ export interface Interessado {
   id: number;
   nome: string;
   documento: string;
+  cep: string | null;
+  rua: string | null;
+  numero: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  estado: string | null;
+  pontoReferencia: string | null;
   telefone: string;
   email: string;
+  emailFinanceiro: string | null;
 }
 
 export interface Filial {

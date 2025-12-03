@@ -18,6 +18,7 @@ import { TiposEventosModal } from './TiposEventosModal';
 import { TiposSalasModal } from './TiposSalasModal';
 import { TiposSelectionModal } from './TiposSelectionModal';
 import { SolicitacoesPendentesModal } from './SolicitacoesPendentesModal';
+import { InteressadosModal } from './InteressadosModal';
 import { FullCalendarView } from './FullCalendarView';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { useEventos, useTiposEventos, useTiposDeSalas, useSalas, useSalasPendentes } from '@/hooks/useApi';
@@ -40,6 +41,7 @@ export const Dashboard = () => {
   const [showCadastroUsuarioModal, setShowCadastroUsuarioModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showSolicitacoesPendentesModal, setShowSolicitacoesPendentesModal] = useState(false);
+  const [showInteressadosModal, setShowInteressadosModal] = useState(false);
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
   const [viewingEvento, setViewingEvento] = useState<Evento | null>(null);
   const [editingSala, setEditingSala] = useState<Sala | null>(null);
@@ -347,6 +349,11 @@ export const Dashboard = () => {
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">Sistema</h3>
 
             <div className="grid gap-2">
+              <Button onClick={() => setShowInteressadosModal(true)} variant="outline" className="w-full justify-start">
+                <Users className="h-4 w-4 mr-3" />
+                Gerenciar Interessados
+              </Button>
+
               <Button onClick={handleTiposClick} variant="outline" className="w-full justify-start">
                 <Settings className="h-4 w-4 mr-3" />
                 Gerenciar Tipos
@@ -491,6 +498,10 @@ export const Dashboard = () => {
               <DropdownMenuContent align="end" className="z-50 bg-white min-w-[200px]">
                 <DropdownMenuLabel>Sistema</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowInteressadosModal(true)}>
+                  <Users className="h-4 w-4 mr-2" />
+                  Gerenciar Interessados
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleTiposClick}>
                   <Settings className="h-4 w-4 mr-2" />
                   Gerenciar Tipos
@@ -676,5 +687,7 @@ export const Dashboard = () => {
     <SolicitacoesPendentesModal isOpen={showSolicitacoesPendentesModal} onClose={() => setShowSolicitacoesPendentesModal(false)} />
 
     <ChangePasswordModal isOpen={showChangePasswordModal} onClose={() => setShowChangePasswordModal(false)} />
+
+    <InteressadosModal isOpen={showInteressadosModal} onClose={() => setShowInteressadosModal(false)} />
   </div>;
 };

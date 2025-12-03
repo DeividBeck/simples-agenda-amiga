@@ -171,6 +171,7 @@ export const useAuth = () => {
     isAuthenticated: !!token && isTokenValid(),
     isTokenValid,
     isChangingFilial,
+    isInitialized,
     logout
   };
 };
