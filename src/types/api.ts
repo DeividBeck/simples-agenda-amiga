@@ -68,6 +68,53 @@ export enum EStatusReserva {
   Cancelado = 3
 }
 
+export enum EStatusReservaContrato {
+  Pendente = 0,
+  Confirmado = 1,
+  Cancelado = 2,
+  Expirado = 3
+}
+
+export interface Reserva {
+  id: number;
+  eventoId: number;
+  interessadoId: number;
+  status: EStatusReservaContrato;
+  tokenConfirmacao: string;
+  dataEnvioEmail: string | null;
+  dataConfirmacao: string | null;
+  dataExpiracao: string | null;
+  contratoGerado: boolean;
+  dataGeracaoContrato: string | null;
+  contratoEnviado: boolean;
+  dataEnvioContrato: string | null;
+  dadosPreenchidos: boolean;
+  tokenPreenchimento: string | null;
+  observacoes: string | null;
+  filialId: number;
+  // Dados adicionais preenchidos pelo cliente
+  rg?: string | null;
+  inscricaoEstadual?: string | null;
+  nomePadreResponsavel?: string | null;
+  documentoPadre?: string | null;
+  // Dados do contrato (Admin)
+  valorTotal?: number | null;
+  valorSinal?: number | null;
+  quantidadeParticipantes?: number | null;
+  // Relacionamentos
+  evento?: Evento | null;
+  interessado?: Interessado | null;
+}
+
+export interface ReservaDto {
+  id: number;
+  valorTotal?: number | null;
+  valorSinal?: number | null;
+  quantidadeParticipantes?: number | null;
+  observacoes?: string | null;
+  nomePadreResponsavel?: string | null;
+}
+
 export enum EEdicaoRecorrencia {
   Este = 0,
   EsteEfuturos = 1,
