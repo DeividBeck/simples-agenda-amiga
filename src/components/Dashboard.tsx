@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Plus, Settings, List, Filter, Menu, MapPin, Users, Building2, Loader, Share2, Lock, LogOut, ChevronDown, User } from 'lucide-react';
+import { Calendar, Plus, Settings, List, Filter, Menu, MapPin, Users, Building2, Loader, Share2, Lock, LogOut, ChevronDown, User, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { EventosList } from './EventosList';
 import { InscricoesList } from './InscricoesList';
+import { ReservasList } from './ReservasList';
 import { CreateEventoModal } from './CreateEventoModal';
 import { CreateSalaModal } from './CreateSalaModal';
 import { EditEventoModal } from './EditEventoModal';
@@ -22,6 +23,7 @@ import { InteressadosModal } from './InteressadosModal';
 import { FullCalendarView } from './FullCalendarView';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { useEventos, useTiposEventos, useTiposDeSalas, useSalas, useSalasPendentes } from '@/hooks/useApi';
+import { useReservas } from '@/hooks/api/useReservas';
 import { useAuth } from '@/hooks/useAuth';
 import { useClaims } from '@/hooks/useClaims';
 import { CadastroUsuarioModal } from './CadastroUsuarioModal';
@@ -91,6 +93,11 @@ export const Dashboard = () => {
   const {
     data: salasPendentes
   } = useSalasPendentes();
+
+  const {
+    data: reservas,
+    isLoading: reservasLoading
+  } = useReservas();
 
   // if (!token && !isAuthenticated) {
   //   return <Login />;
@@ -584,6 +591,11 @@ export const Dashboard = () => {
                   <span className="text-xs sm:text-sm">Lista</span>
                   {!canReadEventos() && <Lock className="h-3 w-3 ml-1" />}
                 </TabsTrigger>
+                <TabsTrigger value="reservas" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-initial" disabled={!canReadEventos()}>
+                  <FileText className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="text-xs sm:text-sm">Reservas</span>
+                  {!canReadEventos() && <Lock className="h-3 w-3 ml-1" />}
+                </TabsTrigger>
                 <TabsTrigger value="inscricoes" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-initial" disabled={!canReadEventos()}>
                   <Users className="h-4 w-4 mr-1 sm:mr-2" />
                   <span className="text-xs sm:text-sm">Inscrições</span>
@@ -611,6 +623,16 @@ export const Dashboard = () => {
                   <p className="text-gray-500">Você não tem permissão para visualizar eventos.</p>
                 </div>
               </div> : <EventosList eventos={eventos || []} isLoading={eventosLoading} onEditEvento={handleEditEvento} />}
+            </TabsContent>
+
+            <TabsContent value="reservas" className="p-3 sm:p-6 m-0">
+              {!canReadEventos() ? <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <Lock className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">Acesso Restrito</h3>
+                  <p className="text-gray-500">Você não tem permissão para visualizar reservas.</p>
+                </div>
+              </div> : <ReservasList reservas={reservas || []} isLoading={reservasLoading} />}
             </TabsContent>
 
             <TabsContent value="inscricoes" className="p-3 sm:p-6 m-0">
