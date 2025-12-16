@@ -106,6 +106,17 @@ export interface Reserva {
 
 export interface ReservaDto {
   id: number;
+  // Campos mínimos frequentemente exigidos por validação do backend
+  eventoId?: number;
+  interessadoId?: number;
+  status?: EStatusReservaContrato | string;
+  tokenConfirmacao?: string;
+  dataExpiracao?: string | null;
+  dadosPreenchidos?: boolean;
+  nomeInteressado?: string | null;
+  tituloEvento?: string | null;
+
+  // Campos editáveis pelo Admin
   valorTotal?: number | null;
   valorSinal?: number | null;
   quantidadeParticipantes?: number | null;

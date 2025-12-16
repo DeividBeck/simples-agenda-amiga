@@ -104,11 +104,22 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
     if (!reserva) return;
 
     try {
+      // OBS: alguns backends validam outros campos do DTO (eventoId/interessadoId/status etc.)
+      // então enviamos também esses campos "de identificação" junto com os editáveis.
       const dto: ReservaDto = {
         id: reserva.id,
-        valorTotal: data.valorTotal,
-        valorSinal: data.valorSinal,
-        quantidadeParticipantes: data.quantidadeParticipantes,
+        eventoId: reserva.eventoId,
+        interessadoId: reserva.interessadoId,
+        status: reserva.status,
+        tokenConfirmacao: reserva.tokenConfirmacao,
+        dataExpiracao: reserva.dataExpiracao ?? null,
+        dadosPreenchidos: reserva.dadosPreenchidos,
+        nomeInteressado: reserva.nomeInteressado ?? null,
+        tituloEvento: reserva.tituloEvento ?? null,
+
+        valorTotal: data.valorTotal ?? reserva.valorTotal ?? null,
+        valorSinal: data.valorSinal ?? reserva.valorSinal ?? null,
+        quantidadeParticipantes: data.quantidadeParticipantes ?? reserva.quantidadeParticipantes ?? null,
         observacoes: data.observacoes || null,
       };
 
@@ -121,9 +132,12 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
 
       onClose();
     } catch (error) {
+      const rawMsg = error instanceof Error ? error.message : 'Erro desconhecido';
+      const msg = rawMsg.length > 220 ? `${rawMsg.slice(0, 220)}…` : rawMsg;
+
       toast({
         title: 'Erro ao atualizar',
-        description: 'Não foi possível salvar as informações.',
+        description: msg,
         variant: 'destructive',
       });
     }
