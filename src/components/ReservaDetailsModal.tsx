@@ -27,9 +27,18 @@ interface ReservaDetailsModalProps {
 }
 
 const formSchema = z.object({
-  valorTotal: z.coerce.number().min(0, 'Valor deve ser maior ou igual a zero').optional().nullable(),
-  valorSinal: z.coerce.number().min(0, 'Valor deve ser maior ou igual a zero').optional().nullable(),
-  quantidadeParticipantes: z.coerce.number().min(1, 'Quantidade deve ser pelo menos 1').optional().nullable(),
+  valorTotal: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0, 'Valor deve ser maior ou igual a zero').optional()
+  ),
+  valorSinal: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0, 'Valor deve ser maior ou igual a zero').optional()
+  ),
+  quantidadeParticipantes: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(1, 'Quantidade deve ser pelo menos 1').optional()
+  ),
   observacoes: z.string().optional().nullable(),
 });
 
@@ -73,9 +82,9 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      valorTotal: null,
-      valorSinal: null,
-      quantidadeParticipantes: null,
+      valorTotal: undefined,
+      valorSinal: undefined,
+      quantidadeParticipantes: undefined,
       observacoes: '',
     },
   });
@@ -83,9 +92,9 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
   useEffect(() => {
     if (reserva) {
       form.reset({
-        valorTotal: reserva.valorTotal || null,
-        valorSinal: reserva.valorSinal || null,
-        quantidadeParticipantes: reserva.quantidadeParticipantes || null,
+        valorTotal: reserva.valorTotal ?? undefined,
+        valorSinal: reserva.valorSinal ?? undefined,
+        quantidadeParticipantes: reserva.quantidadeParticipantes ?? undefined,
         observacoes: reserva.observacoes || '',
       });
     }
@@ -100,7 +109,7 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
         valorTotal: data.valorTotal,
         valorSinal: data.valorSinal,
         quantidadeParticipantes: data.quantidadeParticipantes,
-        observacoes: data.observacoes,
+        observacoes: data.observacoes || null,
       };
 
       await updateReserva.mutateAsync({ id: reserva.id, data: dto });
