@@ -26,7 +26,8 @@ const getStatusInfo = (reserva: Reserva) => {
   }
 
   // 🟡 Confirmado (Incompleto): Status = Confirmado mas DadosPreenchidos = false
-  if (reserva.status === EStatusReservaContrato.Confirmado) {
+  const isConfirmado = reserva.status === EStatusReservaContrato.Confirmado || reserva.status === 'Confirmado';
+  if (isConfirmado) {
     return {
       color: 'bg-yellow-500',
       label: 'Incompleto',
@@ -48,20 +49,30 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReserva, setSelectedReserva] = useState<Reserva | null>(null);
 
-  const filteredReservas = reservas.filter(reserva => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      reserva.evento?.titulo?.toLowerCase().includes(searchLower) ||
-      reserva.interessado?.nome?.toLowerCase().includes(searchLower) ||
-      reserva.interessado?.email?.toLowerCase().includes(searchLower)
-    );
-  });
+  const filteredReservas = React.useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return reservas;
+
+    return reservas.filter((reserva) => {
+      // Usa campos diretos da API ou fallback para objetos aninhados
+      const eventoTitulo = (reserva.tituloEvento ?? reserva.evento?.titulo ?? '').toLowerCase();
+      const interessadoNome = (reserva.nomeInteressado ?? reserva.interessado?.nome ?? '').toLowerCase();
+      const interessadoEmail = (reserva.interessado?.email ?? '').toLowerCase();
+
+      return (
+        eventoTitulo.includes(term) ||
+        interessadoNome.includes(term) ||
+        interessadoEmail.includes(term)
+      );
+    });
+  }, [reservas, searchTerm]);
 
   // Ordenar: Prontos primeiro, depois Incompletos, depois Pendentes
   const sortedReservas = [...filteredReservas].sort((a, b) => {
     const getPriority = (r: Reserva) => {
       if (r.dadosPreenchidos) return 0; // Pronto
-      if (r.status === EStatusReservaContrato.Confirmado) return 1; // Incompleto
+      const isConfirmado = r.status === EStatusReservaContrato.Confirmado || r.status === 'Confirmado';
+      if (isConfirmado) return 1; // Incompleto
       return 2; // Pendente
     };
     return getPriority(a) - getPriority(b);
@@ -137,13 +148,13 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{reserva.evento?.titulo || 'Evento não encontrado'}</div>
+                      <div className="font-medium">{reserva.tituloEvento || reserva.evento?.titulo || 'Evento não encontrado'}</div>
                       <div className="text-xs text-muted-foreground">
                         {reserva.evento?.tipoEvento?.nome}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{reserva.interessado?.nome || 'N/A'}</div>
+                      <div className="font-medium">{reserva.nomeInteressado || reserva.interessado?.nome || 'N/A'}</div>
                       <div className="text-xs text-muted-foreground">
                         {reserva.interessado?.email}
                       </div>
@@ -155,7 +166,7 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
                             {format(new Date(reserva.evento.dataInicio), "dd/MM/yyyy", { locale: ptBR })}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {format(new Date(reserva.evento.dataInicio), "HH:mm", { locale: ptBR })} - 
+                            {format(new Date(reserva.evento.dataInicio), "HH:mm", { locale: ptBR })} -
                             {reserva.evento.dataFim && format(new Date(reserva.evento.dataFim), " HH:mm", { locale: ptBR })}
                           </div>
                         </div>

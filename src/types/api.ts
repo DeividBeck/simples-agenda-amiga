@@ -79,29 +79,27 @@ export interface Reserva {
   id: number;
   eventoId: number;
   interessadoId: number;
-  status: EStatusReservaContrato;
+  status: EStatusReservaContrato | string;
   tokenConfirmacao: string;
-  dataEnvioEmail: string | null;
-  dataConfirmacao: string | null;
+  dataEnvioEmail?: string | null;
+  dataConfirmacao?: string | null;
   dataExpiracao: string | null;
-  contratoGerado: boolean;
-  dataGeracaoContrato: string | null;
-  contratoEnviado: boolean;
-  dataEnvioContrato: string | null;
+  contratoGerado?: boolean;
+  dataGeracaoContrato?: string | null;
+  contratoEnviado?: boolean;
+  dataEnvioContrato?: string | null;
   dadosPreenchidos: boolean;
-  tokenPreenchimento: string | null;
+  tokenPreenchimento?: string | null;
   observacoes: string | null;
-  filialId: number;
-  // Dados adicionais preenchidos pelo cliente
-  rg?: string | null;
-  inscricaoEstadual?: string | null;
-  nomePadreResponsavel?: string | null;
-  documentoPadre?: string | null;
+  filialId?: number;
+  // Campos que vêm diretamente da API
+  nomeInteressado?: string | null;
+  tituloEvento?: string | null;
   // Dados do contrato (Admin)
   valorTotal?: number | null;
   valorSinal?: number | null;
   quantidadeParticipantes?: number | null;
-  // Relacionamentos
+  // Relacionamentos (quando disponíveis)
   evento?: Evento | null;
   interessado?: Interessado | null;
 }
@@ -112,7 +110,6 @@ export interface ReservaDto {
   valorSinal?: number | null;
   quantidadeParticipantes?: number | null;
   observacoes?: string | null;
-  nomePadreResponsavel?: string | null;
 }
 
 export enum EEdicaoRecorrencia {
