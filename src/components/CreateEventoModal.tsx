@@ -17,10 +17,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado } from '@/hooks/useApi';
-import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado } from '@/types/api';
+import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useCreateReserva } from '@/hooks/useApi';
+import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado, Evento } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Clock, Users, FileText, Mail, Phone, Building2 } from 'lucide-react';
+import { Loader2, Clock, Users, FileText, Mail, Phone, Building2, DollarSign, Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Funções de formatação
@@ -57,7 +57,15 @@ const formatTelefone = (value: string): string => {
   }
 };
 
-// Schema atualizado com validações mais rigorosas, incluindo interessado
+// Interface para parcelas
+interface ParcelaForm {
+  numeroParcela: number;
+  valor: number;
+  dataVencimento: Date;
+  isSinal: boolean;
+}
+
+// Schema atualizado com validações mais rigorosas, incluindo interessado e reserva
 const schema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
   descricao: z.string().min(1, 'Descrição é obrigatória'),
@@ -81,6 +89,21 @@ const schema = z.object({
   interessadoDocumento: z.string().optional(),
   interessadoTelefone: z.string().optional(),
   interessadoEmail: z.string().optional(),
+  // Campos da reserva/contrato
+  quantidadeParticipantes: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(1, 'Quantidade deve ser maior que 0').optional()
+  ),
+  valorTotal: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0, 'Valor deve ser maior ou igual a 0').optional()
+  ),
+  valorSinal: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number().min(0, 'Valor deve ser maior ou igual a 0').optional()
+  ),
+  dataVencimentoSinal: z.date().optional(),
+  observacoesReserva: z.string().optional(),
 }).refine((data) => {
   if (!data.allDay) {
     return data.horaInicio && data.horaFim;
@@ -119,6 +142,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const { toast } = useToast();
   const createEvento = useCreateEvento();
   const createInteressado = useCreateInteressado();
+  const createReserva = useCreateReserva();
   const { data: tiposEventos, isLoading: loadingTipos } = useTiposEventos();
   const { data: tiposSalas } = useTiposDeSalas();
   const { data: interessados } = useInteressados();
@@ -126,6 +150,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const [searchInteressado, setSearchInteressado] = useState('');
   const [interessadoSelecionado, setInteressadoSelecionado] = useState<Interessado | null>(null);
   const [showInteressadoSearch, setShowInteressadoSearch] = useState(false);
+  const [parcelas, setParcelas] = useState<ParcelaForm[]>([]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -151,6 +176,12 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       interessadoDocumento: '',
       interessadoTelefone: '',
       interessadoEmail: '',
+      // Campos da reserva
+      quantidadeParticipantes: undefined,
+      valorTotal: undefined,
+      valorSinal: undefined,
+      dataVencimentoSinal: undefined,
+      observacoesReserva: '',
     }
   });
 
@@ -200,13 +231,47 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   useEffect(() => {
     if (!showInteressadoSection) {
       setInteressadoSelecionado(null);
+      setParcelas([]);
       form.setValue('interessadoId', undefined);
       form.setValue('interessadoNome', '');
       form.setValue('interessadoDocumento', '');
       form.setValue('interessadoTelefone', '');
       form.setValue('interessadoEmail', '');
+      form.setValue('quantidadeParticipantes', undefined);
+      form.setValue('valorTotal', undefined);
+      form.setValue('valorSinal', undefined);
+      form.setValue('dataVencimentoSinal', undefined);
+      form.setValue('observacoesReserva', '');
     }
   }, [showInteressadoSection, form]);
+
+  // Funções para gerenciar parcelas
+  const handleAddParcela = () => {
+    const nextNumber = parcelas.length + 1;
+    const lastParcela = parcelas[parcelas.length - 1];
+    const nextDate = lastParcela 
+      ? new Date(lastParcela.dataVencimento.getTime() + 30 * 24 * 60 * 60 * 1000) // +30 dias
+      : new Date();
+    
+    setParcelas([...parcelas, {
+      numeroParcela: nextNumber,
+      valor: 0,
+      dataVencimento: nextDate,
+      isSinal: false
+    }]);
+  };
+
+  const handleRemoveParcela = (index: number) => {
+    const newParcelas = parcelas.filter((_, i) => i !== index);
+    // Reordenar números das parcelas
+    setParcelas(newParcelas.map((p, i) => ({ ...p, numeroParcela: i + 1 })));
+  };
+
+  const handleParcelaChange = (index: number, field: keyof ParcelaForm, value: any) => {
+    const newParcelas = [...parcelas];
+    newParcelas[index] = { ...newParcelas[index], [field]: value };
+    setParcelas(newParcelas);
+  };
 
   const handleSelectInteressado = (interessado: Interessado) => {
     setInteressadoSelecionado(interessado);
@@ -295,35 +360,64 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       interessadoId: interessadoId || null,
     };
 
-    createEvento.mutate(data, {
-      onSuccess: () => {
-        if (showInteressadoSection && interessadoId) {
+    try {
+      // Criar o evento primeiro
+      const eventoResponse = await createEvento.mutateAsync(data) as Evento;
+      
+      // Se tem categoria de contrato e interessado, criar a reserva com os dados financeiros
+      if (showInteressadoSection && interessadoId && eventoResponse?.id) {
+        try {
+          await createReserva.mutateAsync({
+            eventoId: eventoResponse.id,
+            interessadoId: interessadoId,
+            valorTotal: values.valorTotal ?? null,
+            valorSinal: values.valorSinal ?? null,
+            dataVencimentoSinal: values.dataVencimentoSinal ? values.dataVencimentoSinal.toISOString() : null,
+            quantidadeParticipantes: values.quantidadeParticipantes ?? null,
+            observacoes: values.observacoesReserva || null,
+            parcelas: parcelas.length > 0 ? parcelas.map(p => ({
+              numeroParcela: p.numeroParcela,
+              valor: p.valor,
+              dataVencimento: p.dataVencimento.toISOString(),
+              isSinal: p.isSinal
+            })) : null
+          });
+          
           toast({
             title: 'Reserva criada com sucesso!',
             description: 'Um e-mail de confirmação foi enviado para o interessado.',
           });
-        } else {
+        } catch (reservaError: any) {
+          // Evento foi criado mas reserva falhou
           toast({
-            title: 'Evento criado com sucesso!',
+            title: 'Evento criado, mas erro na reserva',
+            description: reservaError.message,
+            variant: 'destructive',
           });
         }
-        form.reset();
-        setInteressadoSelecionado(null);
-        onClose();
-      },
-      onError: (error: any) => {
+      } else {
         toast({
-          title: 'Erro ao criar evento.',
-          description: error.message,
-          variant: 'destructive',
+          title: 'Evento criado com sucesso!',
         });
-      },
-    });
+      }
+
+      form.reset();
+      setInteressadoSelecionado(null);
+      setParcelas([]);
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao criar evento.',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleClose = () => {
     form.reset();
     setInteressadoSelecionado(null);
+    setParcelas([]);
     onClose();
   };
 
@@ -625,6 +719,245 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                             )}
                           />
                         </div>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Seção dos Dados da Reserva */}
+                <AccordionItem value="reserva" className="border rounded-lg">
+                  <AccordionTrigger className="px-4 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span>Dados da Reserva</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="quantidadeParticipantes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                Quantidade de Participantes
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="Ex: 100"
+                                  {...field}
+                                  value={field.value ?? ''}
+                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="valorTotal"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-1">
+                                <DollarSign className="h-4 w-4" />
+                                Valor Total (R$)
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="Ex: 5000.00"
+                                  {...field}
+                                  value={field.value ?? ''}
+                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="valorSinal"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor do Sinal (R$)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="Ex: 1000.00"
+                                  {...field}
+                                  value={field.value ?? ''}
+                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="dataVencimentoSinal"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>Vencimento do Sinal</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? (
+                                        format(field.value, "dd/MM/yyyy")
+                                      ) : (
+                                        <span>Selecione a data</span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                    className="p-3 pointer-events-auto"
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="observacoesReserva"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Observações da Reserva</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Observações adicionais sobre a reserva..."
+                                className="min-h-[80px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Seção de Parcelas */}
+                      <div className="border-t pt-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <FormLabel className="text-base">Parcelas</FormLabel>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAddParcela}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Adicionar Parcela
+                          </Button>
+                        </div>
+
+                        {parcelas.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">
+                            Nenhuma parcela adicionada. Clique em "Adicionar Parcela" para incluir.
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {parcelas.map((parcela, index) => (
+                              <div key={index} className="flex items-end gap-2 p-3 bg-muted/50 rounded-lg">
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
+                                  <div>
+                                    <FormLabel className="text-xs">Parcela</FormLabel>
+                                    <Input
+                                      value={parcela.numeroParcela}
+                                      disabled
+                                      className="h-9"
+                                    />
+                                  </div>
+                                  <div>
+                                    <FormLabel className="text-xs">Valor (R$)</FormLabel>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      value={parcela.valor || ''}
+                                      onChange={(e) => handleParcelaChange(index, 'valor', Number(e.target.value))}
+                                      placeholder="0.00"
+                                      className="h-9"
+                                    />
+                                  </div>
+                                  <div>
+                                    <FormLabel className="text-xs">Vencimento</FormLabel>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          className={cn(
+                                            "w-full h-9 pl-3 text-left font-normal",
+                                            !parcela.dataVencimento && "text-muted-foreground"
+                                          )}
+                                        >
+                                          {parcela.dataVencimento ? (
+                                            format(parcela.dataVencimento, "dd/MM/yyyy")
+                                          ) : (
+                                            <span>Selecione</span>
+                                          )}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                          mode="single"
+                                          selected={parcela.dataVencimento}
+                                          onSelect={(date) => handleParcelaChange(index, 'dataVencimento', date || new Date())}
+                                          initialFocus
+                                          className="p-3 pointer-events-auto"
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
+                                      <Switch
+                                        checked={parcela.isSinal}
+                                        onCheckedChange={(checked) => handleParcelaChange(index, 'isSinal', checked)}
+                                      />
+                                      <span className="text-xs">Sinal</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-9 w-9 text-destructive hover:text-destructive"
+                                  onClick={() => handleRemoveParcela(index)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </AccordionContent>

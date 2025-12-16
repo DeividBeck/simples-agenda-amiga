@@ -3,6 +3,26 @@ import { Reserva, ReservaDto } from '@/types/api';
 import { useAuth } from '../useAuth';
 import { fetchApi } from './baseApi';
 
+// Interface para parcela de pagamento
+export interface ParcelaDto {
+  numeroParcela: number;
+  valor: number;
+  dataVencimento: string;
+  isSinal: boolean;
+}
+
+// Interface para criar reserva
+export interface CreateReservaDto {
+  eventoId: number;
+  interessadoId: number;
+  valorTotal?: number | null;
+  valorSinal?: number | null;
+  dataVencimentoSinal?: string | null;
+  quantidadeParticipantes?: number | null;
+  observacoes?: string | null;
+  parcelas?: ParcelaDto[] | null;
+}
+
 // Hook para buscar todas as reservas
 export const useReservas = () => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
@@ -22,6 +42,25 @@ export const useReserva = (id: number) => {
     queryKey: ['reserva', filialSelecionada, id],
     queryFn: () => fetchApi(`/${filialSelecionada}/Reservas/${id}`, token) as Promise<Reserva>,
     enabled: isAuthenticated && !!id,
+  });
+};
+
+// Hook para criar reserva
+export const useCreateReserva = () => {
+  const queryClient = useQueryClient();
+  const { token, filialSelecionada } = useAuth();
+
+  return useMutation({
+    mutationFn: (data: CreateReservaDto) => {
+      return fetchApi(`/${filialSelecionada}/Reservas`, token, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservas', filialSelecionada] });
+      queryClient.invalidateQueries({ queryKey: ['eventos', filialSelecionada] });
+    },
   });
 };
 
