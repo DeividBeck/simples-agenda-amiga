@@ -15,6 +15,7 @@ export interface ParcelaDto {
 export interface CreateReservaDto {
   eventoId: number;
   interessadoId: number;
+  status: string;
   valorTotal?: number | null;
   valorSinal?: number | null;
   dataVencimentoSinal?: string | null;

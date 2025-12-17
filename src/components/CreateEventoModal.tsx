@@ -370,6 +370,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
           await createReserva.mutateAsync({
             eventoId: eventoResponse.id,
             interessadoId: interessadoId,
+            status: 'Pendente',
             valorTotal: values.valorTotal ?? null,
             valorSinal: values.valorSinal ?? null,
             dataVencimentoSinal: values.dataVencimentoSinal ? values.dataVencimentoSinal.toISOString() : null,
