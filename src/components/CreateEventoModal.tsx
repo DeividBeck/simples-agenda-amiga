@@ -65,6 +65,35 @@ interface ParcelaForm {
   isSinal: boolean;
 }
 
+const parseDecimalInput = (raw: unknown): number | undefined => {
+  if (raw === '' || raw === null || raw === undefined) return undefined;
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : undefined;
+  if (typeof raw !== 'string') return undefined;
+
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+
+  // Suporta "5000.00" e "5.000,00".
+  const normalized = trimmed.includes(',')
+    ? trimmed.replace(/\./g, '').replace(',', '.')
+    : trimmed;
+
+  const num = Number(normalized);
+  return Number.isFinite(num) ? num : undefined;
+};
+
+const parseIntInput = (raw: unknown): number | undefined => {
+  const num = parseDecimalInput(raw);
+  if (num === undefined) return undefined;
+  const intVal = Math.trunc(num);
+  return Number.isFinite(intVal) ? intVal : undefined;
+};
+
+const toLocalISOString = (date: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
 // Schema atualizado com validações mais rigorosas, incluindo interessado e reserva
 const schema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
@@ -91,16 +120,16 @@ const schema = z.object({
   interessadoEmail: z.string().optional(),
   // Campos da reserva/contrato
   quantidadeParticipantes: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
-    z.number().min(1, 'Quantidade deve ser maior que 0').optional()
+    (val) => parseIntInput(val),
+    z.number().int().finite().min(1, 'Quantidade deve ser maior que 0').optional()
   ),
   valorTotal: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
-    z.number().min(0, 'Valor deve ser maior ou igual a 0').optional()
+    (val) => parseDecimalInput(val),
+    z.number().finite().min(0, 'Valor deve ser maior ou igual a 0').optional()
   ),
   valorSinal: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
-    z.number().min(0, 'Valor deve ser maior ou igual a 0').optional()
+    (val) => parseDecimalInput(val),
+    z.number().finite().min(0, 'Valor deve ser maior ou igual a 0').optional()
   ),
   dataVencimentoSinal: z.date().optional(),
   observacoesReserva: z.string().optional(),
@@ -367,22 +396,52 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       // Se tem categoria de contrato e interessado, criar a reserva com os dados financeiros
       if (showInteressadoSection && interessadoId && eventoResponse?.id) {
         try {
-          await createReserva.mutateAsync({
+          const missing: string[] = [];
+          if (values.quantidadeParticipantes === undefined || !Number.isFinite(values.quantidadeParticipantes)) {
+            missing.push('Quantidade de Participantes');
+          }
+          if (values.valorTotal === undefined || !Number.isFinite(values.valorTotal)) {
+            missing.push('Valor Total');
+          }
+          if (values.valorSinal === undefined || !Number.isFinite(values.valorSinal)) {
+            missing.push('Valor do Sinal');
+          }
+          if (!values.dataVencimentoSinal) {
+            missing.push('Vencimento do Sinal');
+          }
+
+          if (missing.length) {
+            toast({
+              title: 'Preencha os dados da reserva',
+              description: `Campos obrigatórios: ${missing.join(', ')}`,
+              variant: 'destructive',
+            });
+            return;
+          }
+
+          const reservaPayload = {
             eventoId: eventoResponse.id,
             interessadoId: interessadoId,
-            status: 'Pendente',
-            valorTotal: values.valorTotal ?? null,
-            valorSinal: values.valorSinal ?? null,
-            dataVencimentoSinal: values.dataVencimentoSinal ? values.dataVencimentoSinal.toISOString() : null,
-            quantidadeParticipantes: values.quantidadeParticipantes ?? null,
-            observacoes: values.observacoesReserva || null,
-            parcelas: parcelas.length > 0 ? parcelas.map(p => ({
-              numeroParcela: p.numeroParcela,
-              valor: p.valor,
-              dataVencimento: p.dataVencimento.toISOString(),
-              isSinal: p.isSinal
-            })) : null
-          });
+            valorTotal: values.valorTotal,
+            valorSinal: values.valorSinal,
+            dataVencimentoSinal: toLocalISOString(values.dataVencimentoSinal),
+            quantidadeParticipantes: values.quantidadeParticipantes,
+            observacoes: values.observacoesReserva?.trim() ? values.observacoesReserva.trim() : null,
+            parcelas:
+              parcelas.length > 0
+                ? parcelas.map((p) => ({
+                    id: 0,
+                    numeroParcela: p.numeroParcela,
+                    valor: p.valor,
+                    dataVencimento: toLocalISOString(p.dataVencimento),
+                    isSinal: p.isSinal,
+                  }))
+                : null,
+          };
+
+          console.debug('CreateReserva payload', reservaPayload);
+
+          await createReserva.mutateAsync(reservaPayload);
           
           toast({
             title: 'Reserva criada com sucesso!',
@@ -751,7 +810,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                   placeholder="Ex: 100"
                                   {...field}
                                   value={field.value ?? ''}
-                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                  onChange={(e) => field.onChange(parseIntInput(e.target.value))}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -775,7 +834,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                   placeholder="Ex: 5000.00"
                                   {...field}
                                   value={field.value ?? ''}
-                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                  onChange={(e) => field.onChange(parseDecimalInput(e.target.value))}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -796,7 +855,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                   placeholder="Ex: 1000.00"
                                   {...field}
                                   value={field.value ?? ''}
-                                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                                  onChange={(e) => field.onChange(parseDecimalInput(e.target.value))}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -901,7 +960,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                       type="number"
                                       step="0.01"
                                       value={parcela.valor || ''}
-                                      onChange={(e) => handleParcelaChange(index, 'valor', Number(e.target.value))}
+                                      onChange={(e) => handleParcelaChange(index, 'valor', parseDecimalInput(e.target.value) ?? 0)}
                                       placeholder="0.00"
                                       className="h-9"
                                     />
