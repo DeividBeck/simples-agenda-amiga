@@ -5,6 +5,7 @@ import { fetchApi } from './baseApi';
 
 // Interface para parcela de pagamento
 export interface ParcelaDto {
+  id?: number;
   numeroParcela: number;
   valor: number;
   dataVencimento: string;
@@ -15,7 +16,7 @@ export interface ParcelaDto {
 export interface CreateReservaDto {
   eventoId: number;
   interessadoId: number;
-  status: string;
+  status?: string;
   valorTotal?: number | null;
   valorSinal?: number | null;
   dataVencimentoSinal?: string | null;
