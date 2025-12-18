@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useCreateReserva } from '@/hooks/useApi';
+import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useUpdateReserva } from '@/hooks/useApi';
 import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado, Evento } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Clock, Users, FileText, Mail, Phone, Building2, DollarSign, Trash2, Plus } from 'lucide-react';
@@ -171,7 +171,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const { toast } = useToast();
   const createEvento = useCreateEvento();
   const createInteressado = useCreateInteressado();
-  const createReserva = useCreateReserva();
+  const updateReserva = useUpdateReserva();
   const { data: tiposEventos, isLoading: loadingTipos } = useTiposEventos();
   const { data: tiposSalas } = useTiposDeSalas();
   const { data: interessados } = useInteressados();
@@ -393,39 +393,21 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       // Criar o evento primeiro
       const eventoResponse = await createEvento.mutateAsync(data) as Evento;
       
-      // Se tem categoria de contrato e interessado, criar a reserva com os dados financeiros
-      if (showInteressadoSection && interessadoId && eventoResponse?.id) {
+      // Se tem categoria de contrato e interessado, atualizar a reserva criada automaticamente pelo backend
+      if (showInteressadoSection && interessadoId && eventoResponse?.reserva?.id) {
         try {
-          const missing: string[] = [];
-          if (values.quantidadeParticipantes === undefined || !Number.isFinite(values.quantidadeParticipantes)) {
-            missing.push('Quantidade de Participantes');
-          }
-          if (values.valorTotal === undefined || !Number.isFinite(values.valorTotal)) {
-            missing.push('Valor Total');
-          }
-          if (values.valorSinal === undefined || !Number.isFinite(values.valorSinal)) {
-            missing.push('Valor do Sinal');
-          }
-          if (!values.dataVencimentoSinal) {
-            missing.push('Vencimento do Sinal');
-          }
-
-          if (missing.length) {
-            toast({
-              title: 'Preencha os dados da reserva',
-              description: `Campos obrigatórios: ${missing.join(', ')}`,
-              variant: 'destructive',
-            });
-            return;
-          }
-
           const reservaPayload = {
+            id: eventoResponse.reserva.id,
             eventoId: eventoResponse.id,
             interessadoId: interessadoId,
-            valorTotal: values.valorTotal,
-            valorSinal: values.valorSinal,
-            dataVencimentoSinal: toLocalISOString(values.dataVencimentoSinal),
-            quantidadeParticipantes: values.quantidadeParticipantes,
+            status: eventoResponse.reserva.status || 'Pendente',
+            tokenConfirmacao: eventoResponse.reserva.tokenConfirmacao,
+            dataExpiracao: eventoResponse.reserva.dataExpiracao,
+            dadosPreenchidos: eventoResponse.reserva.dadosPreenchidos,
+            valorTotal: values.valorTotal ?? 0,
+            valorSinal: values.valorSinal ?? 0,
+            dataVencimentoSinal: values.dataVencimentoSinal ? toLocalISOString(values.dataVencimentoSinal) : null,
+            quantidadeParticipantes: values.quantidadeParticipantes ?? 0,
             observacoes: values.observacoesReserva?.trim() ? values.observacoesReserva.trim() : null,
             parcelas:
               parcelas.length > 0
@@ -439,18 +421,18 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                 : null,
           };
 
-          console.debug('CreateReserva payload', reservaPayload);
+          console.debug('UpdateReserva payload', reservaPayload);
 
-          await createReserva.mutateAsync(reservaPayload);
+          await updateReserva.mutateAsync({ id: eventoResponse.reserva.id, data: reservaPayload });
           
           toast({
-            title: 'Reserva criada com sucesso!',
+            title: 'Evento criado com sucesso!',
             description: 'Um e-mail de confirmação foi enviado para o interessado.',
           });
         } catch (reservaError: any) {
-          // Evento foi criado mas reserva falhou
+          // Evento foi criado mas atualização da reserva falhou
           toast({
-            title: 'Evento criado, mas erro na reserva',
+            title: 'Evento criado, mas erro ao salvar dados da reserva',
             description: reservaError.message,
             variant: 'destructive',
           });
