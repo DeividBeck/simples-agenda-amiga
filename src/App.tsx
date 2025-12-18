@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Snowfall from "react-snowfall";
+import { SeasonalEffects } from "./components/SeasonalEffects";
 import Index from "./pages/Index";
 import Inscricao from "./pages/Inscricao";
 import EventosPublicos from "./pages/EventosPublicos";
@@ -16,17 +16,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Snowfall
-        color="#fff"
-        snowflakeCount={150}
-        style={{
-          position: 'fixed',
-          width: '100vw',
-          height: '100vh',
-          zIndex: 9999,
-          pointerEvents: 'none',
-        }}
-      />
+      <SeasonalEffects />
       <Toaster />
       <Sonner />
       <BrowserRouter basename="/agendaparoquial/">

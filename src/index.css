@@ -112,3 +112,85 @@
     @apply !fixed !inset-0 !flex !items-center !justify-center;
   }
 }
+
+/* Seasonal Effects Animations */
+@keyframes fall-heart {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fall-confetti {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes firework {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes fall-leaf {
+  0% {
+    transform: translateY(-100vh) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(50vh) translateX(30px) rotate(180deg);
+  }
+  100% {
+    transform: translateY(100vh) translateX(-30px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fall-flower {
+  0% {
+    transform: translateY(-100vh) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(50vh) rotate(180deg) scale(1.2);
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.animate-fall-heart {
+  animation: fall-heart 8s linear infinite;
+}
+
+.animate-fall-confetti {
+  animation: fall-confetti 5s linear infinite;
+}
+
+.animate-firework {
+  animation: firework 2s ease-in-out infinite;
+}
+
+.animate-fall-leaf {
+  animation: fall-leaf 10s ease-in-out infinite;
+}
+
+.animate-fall-flower {
+  animation: fall-flower 12s ease-in-out infinite;
+}
