@@ -15,8 +15,10 @@ interface ReservasListProps {
 }
 
 const getStatusInfo = (reserva: Reserva) => {
-  // 🟢 Pronto: DadosPreenchidos = true
-  if (reserva.dadosPreenchidos) {
+  const status = typeof reserva.status === 'string' ? reserva.status : EStatusReservaContrato[reserva.status];
+  
+  // 🟢 Pronto: DadosPreenchidos = true E status Confirmado
+  if (reserva.dadosPreenchidos && (status === 'Confirmado' || reserva.status === EStatusReservaContrato.Confirmado)) {
     return {
       color: 'bg-green-500',
       label: 'Pronto',
@@ -26,17 +28,36 @@ const getStatusInfo = (reserva: Reserva) => {
   }
 
   // 🟡 Confirmado (Incompleto): Status = Confirmado mas DadosPreenchidos = false
-  const isConfirmado = reserva.status === EStatusReservaContrato.Confirmado || reserva.status === 'Confirmado';
-  if (isConfirmado) {
+  if (status === 'Confirmado' || reserva.status === EStatusReservaContrato.Confirmado) {
     return {
       color: 'bg-yellow-500',
       label: 'Incompleto',
-      description: 'Aguardando preenchimento dos dados',
+      description: 'Reserva confirmada, aguardando preenchimento dos dados',
       variant: 'secondary' as const,
     };
   }
 
-  // 🔴 Pendente: Email enviado, aguardando clique
+  // 🔵 Recusado: Cliente recusou a reserva
+  if (status === 'Recusado' || reserva.status === EStatusReservaContrato.Recusado) {
+    return {
+      color: 'bg-blue-500',
+      label: 'Recusado',
+      description: 'Reserva recusada pelo cliente',
+      variant: 'outline' as const,
+    };
+  }
+
+  // ⚫ Expirado: Token expirou sem resposta
+  if (status === 'Expirado' || reserva.status === EStatusReservaContrato.Expirado) {
+    return {
+      color: 'bg-gray-500',
+      label: 'Expirado',
+      description: 'Prazo de confirmação expirado',
+      variant: 'outline' as const,
+    };
+  }
+
+  // 🔴 Pendente: Email enviado, aguardando resposta
   return {
     color: 'bg-red-500',
     label: 'Pendente',
@@ -103,7 +124,7 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <Circle className="h-3 w-3 fill-red-500 text-red-500" />
           <span>Pendente</span>
@@ -115,6 +136,14 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
         <div className="flex items-center gap-1.5">
           <Circle className="h-3 w-3 fill-green-500 text-green-500" />
           <span>Pronto</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Circle className="h-3 w-3 fill-blue-500 text-blue-500" />
+          <span>Recusado</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Circle className="h-3 w-3 fill-gray-500 text-gray-500" />
+          <span>Expirado</span>
         </div>
       </div>
 
