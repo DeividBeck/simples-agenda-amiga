@@ -71,7 +71,7 @@ export enum EStatusReserva {
 export enum EStatusReservaContrato {
   Pendente = 0,
   Confirmado = 1,
-  Cancelado = 2,
+  Recusado = 2,
   Expirado = 3
 }
 
