@@ -159,6 +159,7 @@ export interface Evento {
   salaId?: number | null;
   interessadoId?: number | null;
   interessado?: Interessado | null;
+  reserva?: Reserva | null;
 }
 
 export interface TipoDeSala {
