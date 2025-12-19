@@ -429,8 +429,8 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
         dataFim: dataFim.toISOString(),
         allDay: values.allDay
       } : null,
-      interessadoId: interessadoId || null,
-      reserva: showInteressadoSection && interessadoId ? {
+      interessadoId: showInteressadoSection ? interessadoId : null,
+      reserva: showInteressadoSection ? {
         valorTotal: values.valorTotal ?? 0,
         valorSinal: values.valorSinal ?? 0,
         dataVencimentoSinal: values.dataVencimentoSinal ? toLocalISOString(values.dataVencimentoSinal) : null,
