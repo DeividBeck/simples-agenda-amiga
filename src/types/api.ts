@@ -218,6 +218,20 @@ export interface CreateEventoRequest {
     allDay: boolean;
   } | null;
   interessadoId?: number | null;
+  reserva?: {
+    valorTotal: number,
+    valorSinal: number,
+    dataVencimentoSinal: string | null,
+    quantidadeParticipantes: number,
+    observacoes: string | null,
+    parcelas: {
+      id: number,
+      numeroParcela: number,
+      valor: number,
+      dataVencimento: string,
+      isSinal: boolean,
+    }[] | null,
+  } | null;
 }
 
 export interface CreateSalaRequest {

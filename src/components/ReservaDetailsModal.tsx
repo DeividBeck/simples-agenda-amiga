@@ -131,13 +131,11 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
       });
 
       onClose();
-    } catch (error) {
-      const rawMsg = error instanceof Error ? error.message : 'Erro desconhecido';
-      const msg = rawMsg.length > 220 ? `${rawMsg.slice(0, 220)}…` : rawMsg;
-
+    }
+    catch (error) {
       toast({
         title: 'Erro ao atualizar',
-        description: msg,
+        description: 'Não foi possível salvar as informações.',
         variant: 'destructive',
       });
     }

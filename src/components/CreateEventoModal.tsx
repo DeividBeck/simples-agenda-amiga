@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useUpdateReserva } from '@/hooks/useApi';
+import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useCreateReserva } from '@/hooks/useApi';
 import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado, Evento } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Clock, Users, FileText, Mail, Phone, Building2, DollarSign, Trash2, Plus } from 'lucide-react';
@@ -55,6 +55,38 @@ const formatTelefone = (value: string): string => {
       .replace(/(\d{2})(\d)/, '($1) $2')
       .replace(/(\d{5})(\d{1,4})$/, '$1-$2');
   }
+};
+
+const formatIntegerForInput = (value: number | undefined): string => {
+  if (value === undefined || value === null) return '';
+  return value.toLocaleString('pt-BR');
+};
+
+const formatCurrencyForInput = (value: number | undefined): string => {
+  if (value === undefined || value === null) return '';
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+// Função auxiliar para recalcular valores das parcelas
+const recalculateParcelasValues = (currentParcelas: ParcelaForm[], total: number | undefined, sinal: number | undefined) => {
+  if (currentParcelas.length === 0) return currentParcelas;
+
+  const totalValue = total || 0;
+  const sinalValue = sinal || 0;
+  const remaining = Math.max(0, totalValue - sinalValue);
+
+  const count = currentParcelas.length;
+  const baseValue = Math.floor((remaining / count) * 100) / 100;
+  const totalDistributed = baseValue * count;
+  const remainder = Math.round((remaining - totalDistributed) * 100) / 100;
+
+  return currentParcelas.map((p, index) => {
+    let value = baseValue;
+    if (index === 0) {
+      value = Number((value + remainder).toFixed(2));
+    }
+    return { ...p, valor: value };
+  });
 };
 
 // Interface para parcelas
@@ -171,7 +203,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const { toast } = useToast();
   const createEvento = useCreateEvento();
   const createInteressado = useCreateInteressado();
-  const updateReserva = useUpdateReserva();
+  const createReserva = useCreateReserva();
   const { data: tiposEventos, isLoading: loadingTipos } = useTiposEventos();
   const { data: tiposSalas } = useTiposDeSalas();
   const { data: interessados } = useInteressados();
@@ -220,6 +252,16 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const watchRecorrencia = form.watch('recorrencia');
   const watchVincularSala = form.watch('vincularSala');
   const watchTipoEventoId = form.watch('tipoEventoId');
+
+  const watchValorTotal = form.watch('valorTotal');
+  const watchValorSinal = form.watch('valorSinal');
+
+  // Atualizar parcelas quando valor total ou sinal mudar
+  useEffect(() => {
+    if (parcelas.length > 0) {
+      setParcelas(prev => recalculateParcelasValues(prev, watchValorTotal, watchValorSinal));
+    }
+  }, [watchValorTotal, watchValorSinal]);
 
   // Verificar se o tipo de evento selecionado tem categoria de contrato
   const tipoEventoSelecionado = useMemo(() => {
@@ -278,22 +320,25 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const handleAddParcela = () => {
     const nextNumber = parcelas.length + 1;
     const lastParcela = parcelas[parcelas.length - 1];
-    const nextDate = lastParcela 
+    const nextDate = lastParcela
       ? new Date(lastParcela.dataVencimento.getTime() + 30 * 24 * 60 * 60 * 1000) // +30 dias
       : new Date();
-    
-    setParcelas([...parcelas, {
+
+    const newParcela = {
       numeroParcela: nextNumber,
       valor: 0,
       dataVencimento: nextDate,
       isSinal: false
-    }]);
+    };
+
+    setParcelas(recalculateParcelasValues([...parcelas, newParcela], watchValorTotal, watchValorSinal));
   };
 
   const handleRemoveParcela = (index: number) => {
     const newParcelas = parcelas.filter((_, i) => i !== index);
     // Reordenar números das parcelas
-    setParcelas(newParcelas.map((p, i) => ({ ...p, numeroParcela: i + 1 })));
+    const reordered = newParcelas.map((p, i) => ({ ...p, numeroParcela: i + 1 }));
+    setParcelas(recalculateParcelasValues(reordered, watchValorTotal, watchValorSinal));
   };
 
   const handleParcelaChange = (index: number, field: keyof ParcelaForm, value: any) => {
@@ -392,47 +437,68 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
     try {
       // Criar o evento primeiro
       const eventoResponse = await createEvento.mutateAsync(data) as Evento;
-      
-      // Se tem categoria de contrato e interessado, atualizar a reserva criada automaticamente pelo backend
-      if (showInteressadoSection && interessadoId && eventoResponse?.reserva?.id) {
+
+      // Se tem categoria de contrato e interessado, criar a reserva com os dados financeiros
+      if (showInteressadoSection && interessadoId && eventoResponse?.id) {
         try {
+          const missing: string[] = [];
+          if (values.quantidadeParticipantes === undefined || !Number.isFinite(values.quantidadeParticipantes)) {
+            missing.push('Quantidade de Participantes');
+          }
+          if (values.valorTotal === undefined || !Number.isFinite(values.valorTotal)) {
+            missing.push('Valor Total');
+          }
+          // if (values.valorSinal === undefined || !Number.isFinite(values.valorSinal)) {
+          //   missing.push('Valor do Sinal');
+          // }
+          // if (!values.dataVencimentoSinal) {
+          //   missing.push('Vencimento do Sinal');
+          // }
+
+          if (missing.length) {
+            toast({
+              title: 'Preencha os dados da reserva',
+              description: `Campos obrigatórios: ${missing.join(', ')}`,
+              variant: 'destructive',
+            });
+            return;
+          }
+
           const reservaPayload = {
-            id: eventoResponse.reserva.id,
             eventoId: eventoResponse.id,
             interessadoId: interessadoId,
-            status: eventoResponse.reserva.status || 'Pendente',
-            tokenConfirmacao: eventoResponse.reserva.tokenConfirmacao,
-            dataExpiracao: eventoResponse.reserva.dataExpiracao,
-            dadosPreenchidos: eventoResponse.reserva.dadosPreenchidos,
-            valorTotal: values.valorTotal ?? 0,
-            valorSinal: values.valorSinal ?? 0,
+            valorTotal: values.valorTotal,
+            // valorSinal: values.valorSinal,
+            // dataVencimentoSinal: toLocalISOString(values.dataVencimentoSinal),
+            valorSinal: values.valorSinal ?? null,
             dataVencimentoSinal: values.dataVencimentoSinal ? toLocalISOString(values.dataVencimentoSinal) : null,
-            quantidadeParticipantes: values.quantidadeParticipantes ?? 0,
+            quantidadeParticipantes: values.quantidadeParticipantes,
             observacoes: values.observacoesReserva?.trim() ? values.observacoesReserva.trim() : null,
             parcelas:
               parcelas.length > 0
                 ? parcelas.map((p) => ({
-                    id: 0,
-                    numeroParcela: p.numeroParcela,
-                    valor: p.valor,
-                    dataVencimento: toLocalISOString(p.dataVencimento),
-                    isSinal: p.isSinal,
-                  }))
+                  id: 0,
+                  numeroParcela: p.numeroParcela,
+                  valor: p.valor,
+                  dataVencimento: toLocalISOString(p.dataVencimento),
+                  isSinal: p.isSinal,
+                }))
                 : null,
           };
 
-          console.debug('UpdateReserva payload', reservaPayload);
+          console.debug('CreateReserva payload', reservaPayload);
 
-          await updateReserva.mutateAsync({ id: eventoResponse.reserva.id, data: reservaPayload });
-          
+          await createReserva.mutateAsync(reservaPayload);
+
           toast({
-            title: 'Evento criado com sucesso!',
+            title: 'Reserva criada com sucesso!',
             description: 'Um e-mail de confirmação foi enviado para o interessado.',
           });
         } catch (reservaError: any) {
-          // Evento foi criado mas atualização da reserva falhou
+          // Evento foi criado mas reserva falhou
+          console.error('Erro ao criar reserva:', reservaError);
           toast({
-            title: 'Evento criado, mas erro ao salvar dados da reserva',
+            title: 'Evento criado, mas erro na reserva',
             description: reservaError.message,
             variant: 'destructive',
           });
@@ -788,11 +854,14 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
+                                  type="text"
                                   placeholder="Ex: 100"
                                   {...field}
-                                  value={field.value ?? ''}
-                                  onChange={(e) => field.onChange(parseIntInput(e.target.value))}
+                                  value={formatIntegerForInput(field.value)}
+                                  onChange={(e) => {
+                                    const numericValue = e.target.value.replace(/\D/g, '');
+                                    field.onChange(numericValue ? parseInt(numericValue, 10) : undefined);
+                                  }}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -811,12 +880,14 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="Ex: 5000.00"
+                                  type="text"
+                                  placeholder="0,00"
                                   {...field}
-                                  value={field.value ?? ''}
-                                  onChange={(e) => field.onChange(parseDecimalInput(e.target.value))}
+                                  value={formatCurrencyForInput(field.value)}
+                                  onChange={(e) => {
+                                    const numericValue = e.target.value.replace(/\D/g, '');
+                                    field.onChange(numericValue ? Number(numericValue) / 100 : undefined);
+                                  }}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -832,12 +903,14 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                               <FormLabel>Valor do Sinal (R$)</FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="Ex: 1000.00"
+                                  type="text"
+                                  placeholder="0,00"
                                   {...field}
-                                  value={field.value ?? ''}
-                                  onChange={(e) => field.onChange(parseDecimalInput(e.target.value))}
+                                  value={formatCurrencyForInput(field.value)}
+                                  onChange={(e) => {
+                                    const numericValue = e.target.value.replace(/\D/g, '');
+                                    field.onChange(numericValue ? Number(numericValue) / 100 : undefined);
+                                  }}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -939,11 +1012,14 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                   <div>
                                     <FormLabel className="text-xs">Valor (R$)</FormLabel>
                                     <Input
-                                      type="number"
-                                      step="0.01"
-                                      value={parcela.valor || ''}
-                                      onChange={(e) => handleParcelaChange(index, 'valor', parseDecimalInput(e.target.value) ?? 0)}
-                                      placeholder="0.00"
+                                      type="text"
+                                      value={formatCurrencyForInput(parcela.valor)}
+                                      onChange={(e) => {
+                                        const numericValue = e.target.value.replace(/\D/g, '');
+                                        const newValue = numericValue ? Number(numericValue) / 100 : 0;
+                                        handleParcelaChange(index, 'valor', newValue);
+                                      }}
+                                      placeholder="0,00"
                                       className="h-9"
                                     />
                                   </div>
