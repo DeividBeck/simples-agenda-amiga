@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useCreateReserva } from '@/hooks/useApi';
+import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useUpdateReserva } from '@/hooks/useApi';
 import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado, Evento } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Clock, Users, FileText, Mail, Phone, Building2, DollarSign, Trash2, Plus } from 'lucide-react';
@@ -56,7 +56,6 @@ const formatTelefone = (value: string): string => {
       .replace(/(\d{5})(\d{1,4})$/, '$1-$2');
   }
 };
-
 const formatIntegerForInput = (value: number | undefined): string => {
   if (value === undefined || value === null) return '';
   return value.toLocaleString('pt-BR');
@@ -203,7 +202,6 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const { toast } = useToast();
   const createEvento = useCreateEvento();
   const createInteressado = useCreateInteressado();
-  const createReserva = useCreateReserva();
   const { data: tiposEventos, isLoading: loadingTipos } = useTiposEventos();
   const { data: tiposSalas } = useTiposDeSalas();
   const { data: interessados } = useInteressados();
@@ -432,82 +430,31 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
         allDay: values.allDay
       } : null,
       interessadoId: interessadoId || null,
+      reserva: showInteressadoSection && interessadoId ? {
+        valorTotal: values.valorTotal ?? 0,
+        valorSinal: values.valorSinal ?? 0,
+        dataVencimentoSinal: values.dataVencimentoSinal ? toLocalISOString(values.dataVencimentoSinal) : null,
+        quantidadeParticipantes: values.quantidadeParticipantes ?? 0,
+        observacoes: values.observacoesReserva?.trim() ? values.observacoesReserva.trim() : null,
+        parcelas:
+          parcelas.length > 0
+            ? parcelas.map((p) => ({
+              id: 0,
+              numeroParcela: p.numeroParcela,
+              valor: p.valor,
+              dataVencimento: toLocalISOString(p.dataVencimento),
+              isSinal: p.isSinal,
+            }))
+            : null,
+      } : null,
     };
 
     try {
-      // Criar o evento primeiro
-      const eventoResponse = await createEvento.mutateAsync(data) as Evento;
-
-      // Se tem categoria de contrato e interessado, criar a reserva com os dados financeiros
-      if (showInteressadoSection && interessadoId && eventoResponse?.id) {
-        try {
-          const missing: string[] = [];
-          if (values.quantidadeParticipantes === undefined || !Number.isFinite(values.quantidadeParticipantes)) {
-            missing.push('Quantidade de Participantes');
-          }
-          if (values.valorTotal === undefined || !Number.isFinite(values.valorTotal)) {
-            missing.push('Valor Total');
-          }
-          // if (values.valorSinal === undefined || !Number.isFinite(values.valorSinal)) {
-          //   missing.push('Valor do Sinal');
-          // }
-          // if (!values.dataVencimentoSinal) {
-          //   missing.push('Vencimento do Sinal');
-          // }
-
-          if (missing.length) {
-            toast({
-              title: 'Preencha os dados da reserva',
-              description: `Campos obrigatórios: ${missing.join(', ')}`,
-              variant: 'destructive',
-            });
-            return;
-          }
-
-          const reservaPayload = {
-            eventoId: eventoResponse.id,
-            interessadoId: interessadoId,
-            valorTotal: values.valorTotal,
-            // valorSinal: values.valorSinal,
-            // dataVencimentoSinal: toLocalISOString(values.dataVencimentoSinal),
-            valorSinal: values.valorSinal ?? null,
-            dataVencimentoSinal: values.dataVencimentoSinal ? toLocalISOString(values.dataVencimentoSinal) : null,
-            quantidadeParticipantes: values.quantidadeParticipantes,
-            observacoes: values.observacoesReserva?.trim() ? values.observacoesReserva.trim() : null,
-            parcelas:
-              parcelas.length > 0
-                ? parcelas.map((p) => ({
-                  id: 0,
-                  numeroParcela: p.numeroParcela,
-                  valor: p.valor,
-                  dataVencimento: toLocalISOString(p.dataVencimento),
-                  isSinal: p.isSinal,
-                }))
-                : null,
-          };
-
-          console.debug('CreateReserva payload', reservaPayload);
-
-          await createReserva.mutateAsync(reservaPayload);
-
-          toast({
-            title: 'Reserva criada com sucesso!',
-            description: 'Um e-mail de confirmação foi enviado para o interessado.',
-          });
-        } catch (reservaError: any) {
-          // Evento foi criado mas reserva falhou
-          console.error('Erro ao criar reserva:', reservaError);
-          toast({
-            title: 'Evento criado, mas erro na reserva',
-            description: reservaError.message,
-            variant: 'destructive',
-          });
-        }
-      } else {
-        toast({
-          title: 'Evento criado com sucesso!',
-        });
-      }
+      await createEvento.mutateAsync(data) as Evento;
+      toast({
+        title: 'Evento criado com sucesso!',
+        // description: 'Um e-mail de confirmação foi enviado para o interessado.',
+      });
 
       form.reset();
       setInteressadoSelecionado(null);
