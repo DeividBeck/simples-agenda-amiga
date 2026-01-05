@@ -5,14 +5,16 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, ExternalLink, MapPin, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, ExternalLink, MapPin, Plus } from 'lucide-react';
 import { Evento, Sala, TipoDeSala } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 import { ViewEventoModal } from './ViewEventoModal';
 import { ViewSalaModal } from './ViewSalaModal';
 import { EditEventoModal } from './EditEventoModal';
 import { EditSalaModal } from './EditSalaModal';
+import { DayEventsModal } from './DayEventsModal';
 import { useClaims } from '@/hooks/useClaims';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FullCalendarViewProps {
   eventos: Evento[];
@@ -29,6 +31,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
 }) => {
   const { toast } = useToast();
   const calendarRef = useRef<FullCalendar>(null);
+  const isMobile = useIsMobile();
   const { canEditEventos, canEditSalas, canReadEventos, canReadSalas } = useClaims();
 
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null);
@@ -37,6 +40,10 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   const [showViewSalaModal, setShowViewSalaModal] = useState(false);
   const [showEditEventoModal, setShowEditEventoModal] = useState(false);
   const [showEditSalaModal, setShowEditSalaModal] = useState(false);
+  
+  // Estado para modal de eventos do dia (mobile)
+  const [showDayEventsModal, setShowDayEventsModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Função para obter a cor do tipo de sala
   const getTipoDeSalaCor = (tipoDeSalaId: number): string => {
@@ -57,10 +64,10 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       endDate = dataFim.toISOString();
     }
 
-    // Se o evento tem sala vinculada, incluir no título
+    // Se o evento tem sala vinculada, incluir no título (apenas no desktop)
     const temSala = evento.sala?.id;
     const tipoSala = temSala ? tiposDeSalas.find(ts => ts.id === evento.sala!.tipoDeSalaId) : null;
-    const titulo = temSala
+    const titulo = !isMobile && temSala
       ? `${evento.titulo} - 🏛️ ${tipoSala?.nome || 'Sala'}`
       : evento.titulo;
 
@@ -103,7 +110,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   // Converter salas independentes para o formato do FullCalendar
   const salasCalendar = salasIndependentes.map(sala => {
     const tipoSala = tiposDeSalas.find(tipo => tipo.id === sala.tipoDeSalaId);
-    const corTipoSala = tipoSala?.cor || '#22c55e'; // Verde padrão se não encontrar
+    const corTipoSala = tipoSala?.cor || '#22c55e';
     const isAllDay = sala.allDay;
 
     let endDate = sala.dataFim;
@@ -115,7 +122,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
 
     return {
       id: `sala-${sala.id}`,
-      title: `🏛️ ${tipoSala?.nome || 'Sala'} - ${sala.descricao || 'Reserva'}`,
+      title: isMobile ? (tipoSala?.nome || 'Sala') : `🏛️ ${tipoSala?.nome || 'Sala'} - ${sala.descricao || 'Reserva'}`,
       start: sala.dataInicio,
       end: endDate,
       allDay: isAllDay,
@@ -196,14 +203,45 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   };
 
   const handleDateSelect = (selectInfo: any) => {
-    if (onCreateEvento) {
+    // No mobile, abrir modal de eventos do dia
+    if (isMobile) {
+      setSelectedDate(selectInfo.start);
+      setShowDayEventsModal(true);
+    } else if (onCreateEvento) {
       onCreateEvento(selectInfo.start);
     }
   };
 
   const handleDateClick = (dateInfo: any) => {
-    if (onCreateEvento) {
+    // No mobile, abrir modal de eventos do dia
+    if (isMobile) {
+      setSelectedDate(dateInfo.date);
+      setShowDayEventsModal(true);
+    } else if (onCreateEvento) {
       onCreateEvento(dateInfo.date);
+    }
+  };
+
+  const handleDayEventClick = (evento: Evento) => {
+    setShowDayEventsModal(false);
+    if (canReadEventos()) {
+      setSelectedEvento(evento);
+      setShowViewEventoModal(true);
+    }
+  };
+
+  const handleDaySalaClick = (sala: Sala) => {
+    setShowDayEventsModal(false);
+    if (canReadSalas()) {
+      setSelectedSala(sala);
+      setShowViewSalaModal(true);
+    }
+  };
+
+  const handleAddEventoFromModal = (date: Date) => {
+    setShowDayEventsModal(false);
+    if (onCreateEvento) {
+      onCreateEvento(date);
     }
   };
 
@@ -212,11 +250,36 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
     const eventType = eventInfo.event.extendedProps.type;
     const isAllDay = eventInfo.event.extendedProps.isAllDay;
 
+    // Layout simplificado para mobile
+    if (isMobile) {
+      if (isAllDay) {
+        return (
+          <div className="fc-event-main-frame p-0.5 w-full overflow-hidden" title={eventInfo.event.title}>
+            <div className="fc-event-title-container overflow-hidden">
+              <span className="font-medium text-[10px] truncate block">{eventInfo.event.title}</span>
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div className="fc-event-main-frame p-0.5 overflow-hidden" title={eventInfo.event.title}>
+            <div className="flex items-center gap-0.5 overflow-hidden max-w-full">
+              <div
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: eventInfo.event.borderColor }}
+              />
+              <span className="font-medium text-[10px] flex-shrink-0">{eventInfo.timeText}</span>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // Layout completo para desktop
     if (eventType === 'evento') {
       const evento = eventInfo.event.extendedProps.evento;
 
       if (isAllDay) {
-        // Evento de dia inteiro - estilo similar ao Google Calendar
         return (
           <div className="fc-event-main-frame p-1 w-full overflow-hidden" title={eventInfo.event.title}>
             <div className="fc-event-title-container overflow-hidden">
@@ -230,7 +293,6 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
           </div>
         );
       } else {
-        // Evento com horário - mostrar como ponto/barra colorida
         return (
           <div className="fc-event-main-frame p-1 overflow-hidden" title={eventInfo.event.title}>
             <div className="flex items-center gap-1 overflow-hidden max-w-full">
@@ -278,6 +340,46 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
     }
   };
 
+  // Estilos CSS específicos para mobile
+  const mobileStyles = isMobile ? `
+    .fc .fc-daygrid-day-frame {
+      min-height: 60px !important;
+    }
+    .fc .fc-daygrid-day-top {
+      justify-content: center !important;
+    }
+    .fc .fc-daygrid-day-number {
+      padding: 2px !important;
+      font-size: 12px !important;
+    }
+    .fc .fc-daygrid-day-events {
+      margin-top: 0 !important;
+    }
+    .fc .fc-daygrid-event-harness {
+      margin-top: 1px !important;
+    }
+    .fc .fc-event {
+      margin: 0 1px !important;
+    }
+    .fc .fc-daygrid-more-link {
+      font-size: 10px !important;
+      padding: 0 !important;
+    }
+    .fc .fc-toolbar-title {
+      font-size: 1rem !important;
+    }
+    .fc .fc-button {
+      padding: 0.2rem 0.4rem !important;
+      font-size: 0.7rem !important;
+    }
+    .fc .fc-col-header-cell {
+      padding: 4px 0 !important;
+    }
+    .fc .fc-col-header-cell-cushion {
+      font-size: 10px !important;
+    }
+  ` : '';
+
   return (
     <div className="space-y-4">
       {/* Controles de navegação responsivos */}
@@ -309,6 +411,18 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+        
+        {/* Botão de adicionar evento no mobile */}
+        {isMobile && onCreateEvento && (
+          <Button
+            size="sm"
+            onClick={() => onCreateEvento()}
+            className="gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="text-xs">Novo</span>
+          </Button>
+        )}
       </div>
 
       {/* Calendário Principal responsivo */}
@@ -316,7 +430,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
         <style>{`
           .fc-event-all-day {
             border-radius: 4px !important;
-            padding: 2px 6px !important;
+            padding: 2px 4px !important;
             font-weight: 500 !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
@@ -351,8 +465,33 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
           .fc-daygrid-event-harness {
             overflow: hidden !important;
           }
+          ${mobileStyles}
         `}</style>
-        <div className="[&_.fc]:rounded-xl [&_.fc]:overflow-hidden [&_.fc-toolbar]:p-2 sm:[&_.fc-toolbar]:p-4 [&_.fc-toolbar]:bg-gradient-to-r [&_.fc-toolbar]:from-slate-50 [&_.fc-toolbar]:to-slate-100 [&_.fc-toolbar]:border-b [&_.fc-toolbar]:border-slate-200 [&_.fc-toolbar-title]:text-lg sm:[&_.fc-toolbar-title]:text-2xl [&_.fc-toolbar-title]:font-semibold [&_.fc-toolbar-title]:text-slate-800 [&_.fc-button]:bg-white [&_.fc-button]:border [&_.fc-button]:border-slate-300 [&_.fc-button]:text-slate-600 [&_.fc-button]:rounded-lg [&_.fc-button]:font-medium [&_.fc-button]:px-2 sm:[&_.fc-button]:px-4 [&_.fc-button]:py-1 sm:[&_.fc-button]:py-2 [&_.fc-button]:transition-all [&_.fc-button]:duration-200 [&_.fc-button]:text-xs sm:[&_.fc-button]:text-sm [&_.fc-button:hover]:bg-slate-50 [&_.fc-button:hover]:border-slate-400 [&_.fc-button:hover]:shadow-sm [&_.fc-button-active]:bg-blue-600 [&_.fc-button-active]:border-blue-600 [&_.fc-button-active]:text-white [&_.fc-daygrid-day]:border-slate-100 [&_.fc-daygrid-day:hover]:bg-slate-50 [&_.fc-day-today]:bg-blue-50 [&_.fc-day-today]:border-blue-600 [&_.fc-event]:rounded-md [&_.fc-event]:border [&_.fc-event]:shadow-sm [&_.fc-event]:transition-all [&_.fc-event]:duration-200 [&_.fc-event:hover]:transform [&_.fc-event:hover]:-translate-y-0.5 [&_.fc-event:hover]:shadow-md [&_.fc-col-header]:bg-slate-50 [&_.fc-col-header]:border-slate-200 [&_.fc-col-header-cell]:py-2 sm:[&_.fc-col-header-cell]:py-3 [&_.fc-col-header-cell]:px-1 sm:[&_.fc-col-header-cell]:px-2 [&_.fc-col-header-cell]:font-semibold [&_.fc-col-header-cell]:text-slate-700 [&_.fc-col-header-cell]:text-xs [&_.fc-col-header-cell]:uppercase [&_.fc-col-header-cell]:tracking-wide">
+        <div className={`
+          [&_.fc]:rounded-xl [&_.fc]:overflow-hidden
+          [&_.fc-toolbar]:p-2 sm:[&_.fc-toolbar]:p-4 
+          [&_.fc-toolbar]:bg-gradient-to-r [&_.fc-toolbar]:from-slate-50 [&_.fc-toolbar]:to-slate-100 
+          [&_.fc-toolbar]:border-b [&_.fc-toolbar]:border-slate-200 
+          [&_.fc-toolbar-title]:text-base sm:[&_.fc-toolbar-title]:text-2xl [&_.fc-toolbar-title]:font-semibold [&_.fc-toolbar-title]:text-slate-800 
+          [&_.fc-button]:bg-white [&_.fc-button]:border [&_.fc-button]:border-slate-300 [&_.fc-button]:text-slate-600 
+          [&_.fc-button]:rounded-lg [&_.fc-button]:font-medium 
+          [&_.fc-button]:px-1 sm:[&_.fc-button]:px-4 [&_.fc-button]:py-1 sm:[&_.fc-button]:py-2 
+          [&_.fc-button]:transition-all [&_.fc-button]:duration-200 
+          [&_.fc-button]:text-[10px] sm:[&_.fc-button]:text-sm 
+          [&_.fc-button:hover]:bg-slate-50 [&_.fc-button:hover]:border-slate-400 [&_.fc-button:hover]:shadow-sm 
+          [&_.fc-button-active]:bg-blue-600 [&_.fc-button-active]:border-blue-600 [&_.fc-button-active]:text-white 
+          [&_.fc-daygrid-day]:border-slate-100 [&_.fc-daygrid-day:hover]:bg-slate-50 
+          [&_.fc-day-today]:bg-blue-50 [&_.fc-day-today]:border-blue-600 
+          [&_.fc-event]:rounded-md [&_.fc-event]:border [&_.fc-event]:shadow-sm 
+          [&_.fc-event]:transition-all [&_.fc-event]:duration-200 
+          [&_.fc-event:hover]:transform [&_.fc-event:hover]:-translate-y-0.5 [&_.fc-event:hover]:shadow-md 
+          [&_.fc-col-header]:bg-slate-50 [&_.fc-col-header]:border-slate-200 
+          [&_.fc-col-header-cell]:py-1 sm:[&_.fc-col-header-cell]:py-3 
+          [&_.fc-col-header-cell]:px-0 sm:[&_.fc-col-header-cell]:px-2 
+          [&_.fc-col-header-cell]:font-semibold [&_.fc-col-header-cell]:text-slate-700 
+          [&_.fc-col-header-cell]:text-[10px] sm:[&_.fc-col-header-cell]:text-xs 
+          [&_.fc-col-header-cell]:uppercase [&_.fc-col-header-cell]:tracking-wide
+        `}>
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
@@ -360,7 +499,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             headerToolbar={{
               left: '',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek,listWeek'
+              right: isMobile ? 'dayGridMonth,listWeek' : 'dayGridMonth,timeGridWeek,listWeek'
             }}
             locale="pt-br"
             buttonText={{
@@ -372,15 +511,15 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             }}
             events={allEvents}
             eventClick={handleEventClick}
-            selectable={true}
+            selectable={!isMobile}
             selectMirror={true}
             select={handleDateSelect}
             dateClick={handleDateClick}
-            dayMaxEvents={false}
+            dayMaxEvents={isMobile ? 2 : false}
             moreLinkText={(num) => `+${num}`}
             height="auto"
             contentHeight="auto"
-            aspectRatio={window.innerWidth < 768 ? 0.8 : 1.35}
+            aspectRatio={isMobile ? 0.85 : 1.35}
             eventContent={renderEventContent}
             eventClassNames="cursor-pointer transition-all duration-200"
             slotMinTime="06:00:00"
@@ -400,11 +539,11 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
               hour12: false
             }}
             dayHeaderFormat={{
-              weekday: 'short',
+              weekday: isMobile ? 'narrow' : 'short',
               day: 'numeric'
             }}
             eventDisplay="auto"
-            displayEventTime={true}
+            displayEventTime={!isMobile}
             stickyHeaderDates={true}
             expandRows={true}
             handleWindowResize={true}
@@ -412,6 +551,20 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
           />
         </div>
       </div>
+
+      {/* Modal de eventos do dia (mobile) */}
+      <DayEventsModal
+        isOpen={showDayEventsModal}
+        onClose={() => setShowDayEventsModal(false)}
+        selectedDate={selectedDate}
+        eventos={eventos}
+        salas={salas}
+        tiposDeSalas={tiposDeSalas}
+        onEventClick={handleDayEventClick}
+        onSalaClick={handleDaySalaClick}
+        onAddEvento={handleAddEventoFromModal}
+        canAddEvento={!!onCreateEvento}
+      />
 
       {/* Modais de Visualização */}
       <ViewEventoModal
