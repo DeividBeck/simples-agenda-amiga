@@ -250,25 +250,28 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
     const eventType = eventInfo.event.extendedProps.type;
     const isAllDay = eventInfo.event.extendedProps.isAllDay;
 
-    // Layout simplificado para mobile
+    // Layout para mobile - com nome truncado
     if (isMobile) {
+      const title = eventInfo.event.title;
+      const truncatedTitle = title.length > 12 ? title.substring(0, 10) + '...' : title;
+      
       if (isAllDay) {
         return (
-          <div className="fc-event-main-frame p-0.5 w-full overflow-hidden" title={eventInfo.event.title}>
+          <div className="fc-event-main-frame p-0.5 w-full overflow-hidden" title={title}>
             <div className="fc-event-title-container overflow-hidden">
-              <span className="font-medium text-[10px] truncate block">{eventInfo.event.title}</span>
+              <span className="font-medium text-[9px] truncate block">{truncatedTitle}</span>
             </div>
           </div>
         );
       } else {
         return (
-          <div className="fc-event-main-frame p-0.5 overflow-hidden" title={eventInfo.event.title}>
+          <div className="fc-event-main-frame p-0.5 overflow-hidden" title={title}>
             <div className="flex items-center gap-0.5 overflow-hidden max-w-full">
               <div
                 className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                 style={{ backgroundColor: eventInfo.event.borderColor }}
               />
-              <span className="font-medium text-[10px] flex-shrink-0">{eventInfo.timeText}</span>
+              <span className="font-medium text-[9px] truncate block flex-1">{truncatedTitle}</span>
             </div>
           </div>
         );
@@ -343,27 +346,35 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   // Estilos CSS específicos para mobile
   const mobileStyles = isMobile ? `
     .fc .fc-daygrid-day-frame {
-      min-height: 60px !important;
+      min-height: 80px !important;
+      cursor: pointer !important;
     }
     .fc .fc-daygrid-day-top {
       justify-content: center !important;
     }
     .fc .fc-daygrid-day-number {
-      padding: 2px !important;
-      font-size: 12px !important;
+      padding: 4px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
     }
     .fc .fc-daygrid-day-events {
-      margin-top: 0 !important;
+      margin-top: 2px !important;
+      padding: 0 2px !important;
     }
     .fc .fc-daygrid-event-harness {
-      margin-top: 1px !important;
+      margin-top: 2px !important;
     }
     .fc .fc-event {
-      margin: 0 1px !important;
+      margin: 1px 2px !important;
+      border-radius: 4px !important;
     }
     .fc .fc-daygrid-more-link {
       font-size: 10px !important;
-      padding: 0 !important;
+      padding: 2px 4px !important;
+      background: hsl(var(--primary)) !important;
+      color: white !important;
+      border-radius: 10px !important;
+      font-weight: 600 !important;
     }
     .fc .fc-toolbar-title {
       font-size: 1rem !important;
@@ -373,10 +384,12 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       font-size: 0.7rem !important;
     }
     .fc .fc-col-header-cell {
-      padding: 4px 0 !important;
+      padding: 6px 0 !important;
     }
     .fc .fc-col-header-cell-cushion {
-      font-size: 10px !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
     }
   ` : '';
 
@@ -411,18 +424,6 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        
-        {/* Botão de adicionar evento no mobile */}
-        {isMobile && onCreateEvento && (
-          <Button
-            size="sm"
-            onClick={() => onCreateEvento()}
-            className="gap-1"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="text-xs">Novo</span>
-          </Button>
-        )}
       </div>
 
       {/* Calendário Principal responsivo */}
@@ -511,11 +512,11 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             }}
             events={allEvents}
             eventClick={handleEventClick}
-            selectable={!isMobile}
+            selectable={false}
             selectMirror={true}
             select={handleDateSelect}
             dateClick={handleDateClick}
-            dayMaxEvents={isMobile ? 2 : false}
+            dayMaxEvents={isMobile ? 3 : false}
             moreLinkText={(num) => `+${num}`}
             height="auto"
             contentHeight="auto"
@@ -538,10 +539,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
               minute: '2-digit',
               hour12: false
             }}
-            dayHeaderFormat={{
-              weekday: isMobile ? 'narrow' : 'short',
-              day: 'numeric'
-            }}
+            dayHeaderFormat={isMobile ? { weekday: 'narrow' } : { weekday: 'short', day: 'numeric' }}
             eventDisplay="auto"
             displayEventTime={!isMobile}
             stickyHeaderDates={true}
@@ -601,6 +599,17 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
         onClose={handleCloseEditSalaModal}
         sala={selectedSala}
       />
+
+      {/* FAB - Floating Action Button para mobile */}
+      {isMobile && onCreateEvento && (
+        <button
+          onClick={() => onCreateEvento()}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all duration-200"
+          aria-label="Adicionar evento"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
     </div>
   );
 };
