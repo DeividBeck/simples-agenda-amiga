@@ -57,7 +57,7 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
 
     return salas.filter(sala => {
       if (salasVinculadas.includes(sala.id)) return false;
-      
+
       const start = new Date(sala.dataInicio);
       const end = new Date(sala.dataFim);
       const dayStart = new Date(selectedDate);
@@ -90,7 +90,7 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-4 max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-md w-[95vw] mx-auto max-h-[80vh] flex flex-col">
         <DialogHeader className="pb-2 border-b">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Calendar className="h-5 w-5 text-primary" />
@@ -125,7 +125,7 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
                           <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                         )}
                       </div>
-                      
+
                       <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         <span>
@@ -135,10 +135,10 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
                       </div>
 
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className="text-xs px-1.5 py-0"
-                          style={{ 
+                          style={{
                             backgroundColor: `${evento.tipoEvento.cor}20`,
                             color: evento.tipoEvento.cor,
                             borderColor: evento.tipoEvento.cor
@@ -146,7 +146,7 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
                         >
                           {evento.tipoEvento.nome}
                         </Badge>
-                        
+
                         {evento.sala && (
                           <Badge variant="outline" className="text-xs px-1.5 py-0">
                             <MapPin className="h-2.5 w-2.5 mr-1" />
@@ -178,13 +178,13 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
                           {getTipoDeSalaNome(sala.tipoDeSalaId)}
                         </h4>
                       </div>
-                      
+
                       {sala.descricao && (
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                           {sala.descricao}
                         </p>
                       )}
-                      
+
                       <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         <span>
@@ -202,8 +202,8 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
 
         {canAddEvento && (
           <div className="pt-3 border-t mt-2">
-            <Button 
-              onClick={() => onAddEvento(selectedDate)} 
+            <Button
+              onClick={() => onAddEvento(selectedDate)}
               className="w-full"
               size="sm"
             >

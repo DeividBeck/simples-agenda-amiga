@@ -40,17 +40,10 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   const [showViewSalaModal, setShowViewSalaModal] = useState(false);
   const [showEditEventoModal, setShowEditEventoModal] = useState(false);
   const [showEditSalaModal, setShowEditSalaModal] = useState(false);
-  
+
   // Estado para modal de eventos do dia (mobile)
   const [showDayEventsModal, setShowDayEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-
-  // Função para obter a cor do tipo de sala
-  const getTipoDeSalaCor = (tipoDeSalaId: number): string => {
-    const tipoSala = tiposDeSalas.find(tipo => tipo.id === tipoDeSalaId);
-    const cor = tipoSala?.cor || '#6b7280';
-    return cor;
-  };
 
   // Converter eventos para o formato do FullCalendar
   const eventosCalendar = eventos.map(evento => {
@@ -68,7 +61,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
     const temSala = evento.sala?.id;
     const tipoSala = temSala ? tiposDeSalas.find(ts => ts.id === evento.sala!.tipoDeSalaId) : null;
     const titulo = !isMobile && temSala
-      ? `${evento.titulo} - 🏛️ ${tipoSala?.nome || 'Sala'}`
+      ? `${evento.titulo} - ${tipoSala?.nome || 'Sala'}`
       : evento.titulo;
 
     return {
@@ -122,7 +115,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
 
     return {
       id: `sala-${sala.id}`,
-      title: isMobile ? (tipoSala?.nome || 'Sala') : `🏛️ ${tipoSala?.nome || 'Sala'} - ${sala.descricao || 'Reserva'}`,
+      title: isMobile ? (tipoSala?.nome || 'Sala') : ` ${tipoSala?.nome || 'Sala'} - ${sala.descricao || 'Reserva'}`,
       start: sala.dataInicio,
       end: endDate,
       allDay: isAllDay,
@@ -249,12 +242,26 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   const renderEventContent = (eventInfo: any) => {
     const eventType = eventInfo.event.extendedProps.type;
     const isAllDay = eventInfo.event.extendedProps.isAllDay;
+    const isListView = eventInfo.view.type.includes('list');
+
+    // Na visualização em lista, o FullCalendar já exibe um ponto colorido.
+    // Para evitar a duplicidade de indicadores (um do FullCalendar e outro customizado),
+    // renderizamos apenas o título do evento, mantendo a interface mais limpa.
+    if (isListView) {
+      return (
+        <div className="fc-event-main-frame overflow-hidden" title={eventInfo.event.title}>
+          <div className="fc-event-title-container">
+            <div className="fc-event-title fc-sticky truncate">{eventInfo.event.title}</div>
+          </div>
+        </div>
+      );
+    }
 
     // Layout para mobile - com nome truncado
     if (isMobile) {
       const title = eventInfo.event.title;
-      const truncatedTitle = title.length > 12 ? title.substring(0, 10) + '...' : title;
-      
+      const truncatedTitle = title.length > 18 ? title.substring(0, 10) + '...' : title;
+
       if (isAllDay) {
         return (
           <div className="fc-event-main-frame p-0.5 w-full overflow-hidden" title={title}>
@@ -424,6 +431,17 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+        {/* Botão de adicionar evento no mobile
+        {isMobile && onCreateEvento && (
+          <Button
+            size="sm"
+            onClick={() => onCreateEvento()}
+            className="gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="text-xs">Novo</span>
+          </Button>
+        )} */}
       </div>
 
       {/* Calendário Principal responsivo */}
@@ -471,14 +489,14 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
         <div className={`
           [&_.fc]:rounded-xl [&_.fc]:overflow-hidden
           [&_.fc-toolbar]:p-2 sm:[&_.fc-toolbar]:p-4 
-          [&_.fc-toolbar]:bg-gradient-to-r [&_.fc-toolbar]:from-slate-50 [&_.fc-toolbar]:to-slate-100 
+          [&_.fc-toolbar]:bg-gradient-to-r [&_.fc-toolbar]:from-slate-50 [&_.fc-toolbar]:to-slate-100
           [&_.fc-toolbar]:border-b [&_.fc-toolbar]:border-slate-200 
-          [&_.fc-toolbar-title]:text-base sm:[&_.fc-toolbar-title]:text-2xl [&_.fc-toolbar-title]:font-semibold [&_.fc-toolbar-title]:text-slate-800 
-          [&_.fc-button]:bg-white [&_.fc-button]:border [&_.fc-button]:border-slate-300 [&_.fc-button]:text-slate-600 
-          [&_.fc-button]:rounded-lg [&_.fc-button]:font-medium 
-          [&_.fc-button]:px-1 sm:[&_.fc-button]:px-4 [&_.fc-button]:py-1 sm:[&_.fc-button]:py-2 
-          [&_.fc-button]:transition-all [&_.fc-button]:duration-200 
-          [&_.fc-button]:text-[10px] sm:[&_.fc-button]:text-sm 
+          [&_.fc-toolbar-title]:text-base sm:[&_.fc-toolbar-title]:text-2xl [&_.fc-toolbar-title]:font-semibold [&_.fc-toolbar-title]:text-slate-800
+          [&_.fc-button]:bg-white [&_.fc-button]:border [&_.fc-button]:border-slate-300 [&_.fc-button]:text-slate-600
+          [&_.fc-button]:rounded-lg [&_.fc-button]:font-medium
+          [&_.fc-button]:px-1 sm:[&_.fc-button]:px-4 [&_.fc-button]:py-1 sm:[&_.fc-button]:py-2
+          [&_.fc-button]:transition-all [&_.fc-button]:duration-200
+          [&_.fc-button]:text-[10px] sm:[&_.fc-button]:text-sm
           [&_.fc-button:hover]:bg-slate-50 [&_.fc-button:hover]:border-slate-400 [&_.fc-button:hover]:shadow-sm 
           [&_.fc-button-active]:bg-blue-600 [&_.fc-button-active]:border-blue-600 [&_.fc-button-active]:text-white 
           [&_.fc-daygrid-day]:border-slate-100 [&_.fc-daygrid-day:hover]:bg-slate-50 
@@ -496,11 +514,11 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-            initialView="dayGridMonth"
+            initialView={isMobile ? 'listWeek' : 'dayGridMonth'}
             headerToolbar={{
               left: '',
               center: 'title',
-              right: isMobile ? 'dayGridMonth,listWeek' : 'dayGridMonth,timeGridWeek,listWeek'
+              right: isMobile ? 'listWeek' : 'dayGridMonth,timeGridWeek,listWeek'
             }}
             locale="pt-br"
             buttonText={{
