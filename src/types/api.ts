@@ -102,6 +102,13 @@ export interface Reserva {
   // Relacionamentos (quando disponíveis)
   evento?: Evento | null;
   interessado?: Interessado | null;
+  parcelas?: {
+    id?: number;
+    numeroParcela: number;
+    valor: number;
+    dataVencimento: string;
+    isSinal: boolean;
+  }[] | null;
 }
 
 export interface ReservaDto {

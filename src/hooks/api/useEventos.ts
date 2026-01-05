@@ -117,6 +117,7 @@ export const useCreateEvento = () => {
         fimRecorrencia: data.fimRecorrencia || null,
         novaSala: data.novaSala || null,
         interessadoId: data.interessadoId || null,
+        reserva: data.reserva || null,
       };
 
       return fetchApi(`/${filialSelecionada}/Eventos`, token, {
