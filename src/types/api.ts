@@ -188,11 +188,12 @@ export interface Sala {
   descricao: string | null;
   dataInicio: string;
   dataFim: string;
-  allDay: boolean;
+  allDay?: boolean;
   tipoDeSalaId: number;
-  tipoDeSala: TipoDeSala | null;
-  status: EStatusReserva; // Corrigido: agora é EStatusReserva
-  dataCriacao: string;
+  tipoDeSala?: TipoDeSala | null;
+  nomeTipoDeSala?: string | null;
+  status: EStatusReserva;
+  dataCriacao?: string;
 }
 
 export interface StatusSala {
