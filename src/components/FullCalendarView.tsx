@@ -34,6 +34,17 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   const isMobile = useIsMobile();
   const { canEditEventos, canEditSalas, canReadEventos, canReadSalas } = useClaims();
 
+  // Efeito para alterar a visualização do calendário com base no tamanho da tela.
+  // Isso garante que a visualização correta seja definida mesmo que o hook `useIsMobile`
+  // mude de valor após a renderização inicial.
+  React.useEffect(() => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      const targetView = isMobile ? 'listWeek' : 'dayGridMonth';
+      calendarApi.changeView(targetView);
+    }
+  }, [isMobile]);
+
   const [selectedEvento, setSelectedEvento] = useState<Evento | null>(null);
   const [selectedSala, setSelectedSala] = useState<Sala | null>(null);
   const [showViewEventoModal, setShowViewEventoModal] = useState(false);
@@ -251,7 +262,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       return (
         <div className="fc-event-main-frame overflow-hidden" title={eventInfo.event.title}>
           <div className="fc-event-title-container">
-            <div className="fc-event-title fc-sticky truncate">{eventInfo.event.title}</div>
+            <div className="fc-event-title fc-sticky whitespace-normal">{eventInfo.event.title}</div>
           </div>
         </div>
       );
@@ -431,7 +442,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        {/* Botão de adicionar evento no mobile
+        {/* Botão de adicionar evento no mobile */}
         {isMobile && onCreateEvento && (
           <Button
             size="sm"
@@ -441,7 +452,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             <Plus className="h-4 w-4" />
             <span className="text-xs">Novo</span>
           </Button>
-        )} */}
+        )}
       </div>
 
       {/* Calendário Principal responsivo */}
@@ -514,7 +525,9 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
           <FullCalendar
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-            initialView={isMobile ? 'listWeek' : 'dayGridMonth'}
+            // A visualização inicial é definida como 'dayGridMonth' e, em seguida,
+            // o useEffect acima ajusta para 'listWeek' em dispositivos móveis.
+            initialView="dayGridMonth"
             headerToolbar={{
               left: '',
               center: 'title',
@@ -617,17 +630,6 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
         onClose={handleCloseEditSalaModal}
         sala={selectedSala}
       />
-
-      {/* FAB - Floating Action Button para mobile */}
-      {isMobile && onCreateEvento && (
-        <button
-          onClick={() => onCreateEvento()}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all duration-200"
-          aria-label="Adicionar evento"
-        >
-          <Plus className="h-6 w-6" />
-        </button>
-      )}
     </div>
   );
 };

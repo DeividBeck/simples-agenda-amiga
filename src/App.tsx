@@ -16,7 +16,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      {/* <SeasonalEffects /> */}
+      <SeasonalEffects />
       <Toaster />
       <Sonner />
       <BrowserRouter basename="/agendaparoquial/">

@@ -17,7 +17,7 @@ interface SeasonConfig {
 // Configuração das datas para cada tema
 const seasonConfigs: SeasonConfig[] = [
   // Natal (15 Dez - 30 Dez)
-  { theme: "snow", startMonth: 12, startDay: 15, endMonth: 12, endDay: 30, name: "Natal" },
+  { theme: "snow", startMonth: 12, startDay: 1, endMonth: 12, endDay: 30, name: "Natal" },
 ];
 
 function isDateInRange(config: SeasonConfig): boolean {

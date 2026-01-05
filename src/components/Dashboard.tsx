@@ -25,6 +25,7 @@ import { PWAInstallBanner } from './PWAInstallBanner';
 import { useEventos, useTiposEventos, useTiposDeSalas, useSalas, useSalasPendentes } from '@/hooks/useApi';
 import { useReservas } from '@/hooks/api/useReservas';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useClaims } from '@/hooks/useClaims';
 import { CadastroUsuarioModal } from './CadastroUsuarioModal';
 import { ChangePasswordModal } from './ChangePasswordModal';
@@ -34,7 +35,9 @@ import Login from '@/pages/Login';
 import { useNavigate } from 'react-router-dom';
 export const Dashboard = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('calendar');
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateSalaModal, setShowCreateSalaModal] = useState(false);
   const [showTiposSelectionModal, setShowTiposSelectionModal] = useState(false);
@@ -675,5 +678,6 @@ export const Dashboard = () => {
     <ChangePasswordModal isOpen={showChangePasswordModal} onClose={() => setShowChangePasswordModal(false)} />
 
     <InteressadosModal isOpen={showInteressadosModal} onClose={() => setShowInteressadosModal(false)} />
+
   </div>;
 };
