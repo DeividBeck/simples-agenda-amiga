@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateSala, useTiposDeSalas } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
+import { useClaims } from '@/hooks/useClaims';
 import { EStatusReserva } from '@/types/api';
 
 const formSchema = z.object({
@@ -39,6 +40,7 @@ export const CreateSalaModal: React.FC<CreateSalaModalProps> = ({
   const { toast } = useToast();
   const createSala = useCreateSala();
   const { data: tiposDeSalas } = useTiposDeSalas();
+  const { isAdmin } = useClaims();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -65,10 +67,18 @@ export const CreateSalaModal: React.FC<CreateSalaModalProps> = ({
 
       await createSala.mutateAsync(requestData);
 
-      toast({
-        title: 'Sala criada!',
-        description: 'A reserva de sala foi criada com sucesso.',
-      });
+      // Mensagem diferente para admin vs não-admin
+      if (isAdmin()) {
+        toast({
+          title: 'Sala criada!',
+          description: 'A reserva de sala foi criada com sucesso.',
+        });
+      } else {
+        toast({
+          title: 'Solicitação enviada!',
+          description: 'Sua reserva de sala foi enviada para análise. Você será notificado quando for aprovada.',
+        });
+      }
 
       form.reset();
       onClose();
