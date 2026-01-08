@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { MapPin, Clock, Users, CheckCircle, XCircle, AlertCircle, Calendar, Trash2 } from 'lucide-react';
+import { MapPin, Clock, Users, CheckCircle, XCircle, AlertCircle, Calendar, Trash2, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -129,6 +129,20 @@ export const ViewSalaModal: React.FC<ViewSalaModalProps> = ({
             </p>
           </div>
 
+          {/* Solicitante */}
+          {sala.solicitanteEmail && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-medium mb-2">Solicitante</h3>
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{sala.solicitanteEmail}</span>
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Informações da Sala */}
           {sala.tipoDeSala && (
             <>
@@ -140,12 +154,14 @@ export const ViewSalaModal: React.FC<ViewSalaModalProps> = ({
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Capacidade: {sala.tipoDeSala.capacidade} pessoas</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      Criado em: {format(new Date(sala.dataCriacao), "dd/MM/yyyy 'às' HH:mm")}
-                    </span>
-                  </div>
+                  {sala.dataCriacao && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        Criado em: {format(new Date(sala.dataCriacao), "dd/MM/yyyy 'às' HH:mm")}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </>
