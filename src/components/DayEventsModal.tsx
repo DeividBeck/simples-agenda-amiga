@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar, Clock, MapPin, Plus, ExternalLink } from 'lucide-react';
-import { Evento, Sala, TipoDeSala } from '@/types/api';
+import { Evento, Sala, TipoDeSala, EStatusReserva } from '@/types/api';
 import { Badge } from '@/components/ui/badge';
 
 interface DayEventsModalProps {
@@ -36,8 +36,14 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
   if (!selectedDate) return null;
 
   // Filtrar eventos e salas do dia selecionado
+  // Só mostrar eventos com salas aprovadas (ou sem sala)
   const getEventosForDay = () => {
     return eventos.filter(evento => {
+      // Se tem sala vinculada, só mostrar se a sala estiver aprovada
+      if (evento.sala?.id && evento.sala.status !== EStatusReserva.Aprovado) {
+        return false;
+      }
+
       const start = new Date(evento.dataInicio);
       const end = new Date(evento.dataFim);
       const dayStart = new Date(selectedDate);
@@ -56,7 +62,11 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
       .map(e => e.sala!.id);
 
     return salas.filter(sala => {
+      // Ignorar salas vinculadas a eventos
       if (salasVinculadas.includes(sala.id)) return false;
+      
+      // Só mostrar salas aprovadas
+      if (sala.status !== EStatusReserva.Aprovado) return false;
 
       const start = new Date(sala.dataInicio);
       const end = new Date(sala.dataFim);

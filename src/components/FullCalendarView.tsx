@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar, ExternalLink, MapPin, Plus } from 'lucide-react';
-import { Evento, Sala, TipoDeSala } from '@/types/api';
+import { Evento, Sala, TipoDeSala, EStatusReserva } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 import { ViewEventoModal } from './ViewEventoModal';
 import { ViewSalaModal } from './ViewSalaModal';
@@ -56,8 +56,16 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
   const [showDayEventsModal, setShowDayEventsModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
+  // Filtrar eventos: se tiver sala vinculada, só mostrar se a sala estiver aprovada
+  const eventosFiltrados = eventos.filter(evento => {
+    if (evento.sala?.id) {
+      return evento.sala.status === EStatusReserva.Aprovado;
+    }
+    return true;
+  });
+
   // Converter eventos para o formato do FullCalendar
-  const eventosCalendar = eventos.map(evento => {
+  const eventosCalendar = eventosFiltrados.map(evento => {
     const isAllDay = evento.allDay;
     let endDate = evento.dataFim;
 
@@ -104,12 +112,15 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
     };
   });
 
-  // Filtrar salas que não estão vinculadas a eventos
+  // Filtrar salas que não estão vinculadas a eventos e que estão aprovadas (não pendentes)
   const salasVinculadas = eventos
     .filter(e => e.sala?.id)
     .map(e => e.sala!.id);
 
-  const salasIndependentes = salas.filter(sala => !salasVinculadas.includes(sala.id));
+  const salasIndependentes = salas.filter(sala => 
+    !salasVinculadas.includes(sala.id) && 
+    sala.status === EStatusReserva.Aprovado
+  );
 
   // Converter salas independentes para o formato do FullCalendar
   const salasCalendar = salasIndependentes.map(sala => {

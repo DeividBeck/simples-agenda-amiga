@@ -428,8 +428,8 @@ export const Dashboard = () => {
               </div>}
             </div>
 
-            {/* Notificações Dropdown */}
-            {canReadSalas() && <NotificationsDropdown />}
+            {/* Notificações Dropdown - apenas para admins */}
+            {isAdmin() && <NotificationsDropdown />}
 
             {/* Ações de Criação */}
             <DropdownMenu>

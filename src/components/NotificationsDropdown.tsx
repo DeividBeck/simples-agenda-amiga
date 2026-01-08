@@ -1,4 +1,4 @@
-import { Bell, MapPin, Calendar, Clock, Check, X, FileText, User } from 'lucide-react';
+import { Bell, MapPin, Calendar, Clock, Check, X, FileText, User, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -105,6 +105,12 @@ export const NotificationsDropdown = () => {
                                                         <Clock className="h-3 w-3 ml-1" />
                                                         <span>{horaInicio} - {horaFim}</span>
                                                     </div>
+                                                    {sala.solicitanteEmail && (
+                                                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                                            <Mail className="h-3 w-3" />
+                                                            <span className="truncate">{sala.solicitanteEmail}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="flex gap-1">
                                                     <Button
