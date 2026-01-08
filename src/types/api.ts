@@ -194,6 +194,7 @@ export interface Sala {
   nomeTipoDeSala?: string | null;
   status: EStatusReserva;
   dataCriacao?: string;
+  solicitanteEmail?: string | null;
 }
 
 export interface StatusSala {
@@ -204,6 +205,7 @@ export interface StatusSala {
   tipoDeSalaId: string;
   nomeTipoDeSala: string | null;
   status: EStatusReserva;
+  solicitanteEmail?: string | null;
 }
 
 export interface CreateEventoRequest {
