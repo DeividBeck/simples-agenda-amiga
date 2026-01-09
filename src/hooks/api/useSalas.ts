@@ -63,6 +63,7 @@ export const useCreateSala = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
+      queryClient.invalidateQueries({ queryKey: ['salasPendentes', filialSelecionada] });
     },
     onError: (error: any) => {
       console.error('Erro ao criar sala:', error);
