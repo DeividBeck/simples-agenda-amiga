@@ -513,7 +513,10 @@ export const Dashboard = () => {
           </div>
 
           {/* Mobile Actions */}
-          <MobileActions />
+          <div className="flex md:hidden items-center gap-2">
+            {isAdmin() && <NotificationsDropdown />}
+            <MobileActions />
+          </div>
         </div>
       </div>
     </div>
