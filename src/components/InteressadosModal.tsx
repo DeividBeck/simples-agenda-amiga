@@ -50,14 +50,14 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
         try {
             await deleteInteressado.mutateAsync(deletingInteressado.id);
             toast({
-                title: "Interessado excluído",
-                description: "O interessado foi removido com sucesso.",
+                title: "Contratante excluído",
+                description: "O contratante foi removido com sucesso.",
             });
             setDeletingInteressado(null);
         } catch (error) {
             toast({
                 title: "Erro ao excluir",
-                description: "Não foi possível excluir o interessado.",
+                description: "Não foi possível excluir o contratante.",
                 variant: "destructive",
             });
         }
@@ -79,7 +79,7 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
                         <DialogTitle className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Users className="h-5 w-5" />
-                                Gerenciar Interessados
+                                Gerenciar Contratantes
                                 {interessados && (
                                     <Badge variant="secondary">{interessados.length}</Badge>
                                 )}
@@ -90,7 +90,7 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
                                 className="bg-blue-600 hover:bg-blue-700"
                             >
                                 <Plus className="h-4 w-4 mr-2" />
-                                Novo Interessado
+                                Novo Contratante
                             </Button>
                         </DialogTitle>
                     </DialogHeader>
@@ -114,17 +114,17 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
                             </div>
                         ) : error ? (
                             <div className="text-center py-12 text-red-500">
-                                Erro ao carregar interessados
+                                Erro ao carregar contratantes
                             </div>
                         ) : filteredInteressados.length === 0 ? (
                             <Card>
                                 <CardContent className="text-center py-8">
                                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                                     <h3 className="text-lg font-medium text-gray-600 mb-2">
-                                        {searchTerm ? 'Nenhum interessado encontrado' : 'Nenhum interessado cadastrado'}
+                                        {searchTerm ? 'Nenhum contratante encontrado' : 'Nenhum contratante cadastrado'}
                                     </h3>
                                     <p className="text-gray-500">
-                                        {searchTerm ? 'Tente buscar por outro termo' : 'Crie o primeiro interessado para começar'}
+                                        {searchTerm ? 'Tente buscar por outro termo' : 'Crie o primeiro contratante para começar'}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -221,7 +221,7 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tem certeza que deseja excluir o interessado "{deletingInteressado?.nome}"?
+                            Tem certeza que deseja excluir o contratante "{deletingInteressado?.nome}"?
                             Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

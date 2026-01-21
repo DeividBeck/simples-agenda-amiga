@@ -3,7 +3,7 @@ import { Interessado } from '@/types/api';
 import { useAuth } from '../useAuth';
 import { fetchApi } from './baseApi';
 
-// Hook para buscar interessados
+// Hook para buscar contratantes
 export const useInteressados = () => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
 
@@ -14,7 +14,7 @@ export const useInteressados = () => {
   });
 };
 
-// Hook para buscar interessado por ID
+// Hook para buscar contratante por ID
 export const useInteressado = (id: number) => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
 
@@ -25,7 +25,7 @@ export const useInteressado = (id: number) => {
   });
 };
 
-// Hook para criar interessado
+// Hook para criar contratante
 export const useCreateInteressado = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
@@ -43,7 +43,7 @@ export const useCreateInteressado = () => {
   });
 };
 
-// Hook para atualizar interessado
+// Hook para atualizar contratante
 export const useUpdateInteressado = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
@@ -61,7 +61,7 @@ export const useUpdateInteressado = () => {
   });
 };
 
-// Hook para deletar interessado
+// Hook para deletar contratante
 export const useDeleteInteressado = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();

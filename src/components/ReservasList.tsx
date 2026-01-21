@@ -16,7 +16,7 @@ interface ReservasListProps {
 
 const getStatusInfo = (reserva: Reserva) => {
   const status = typeof reserva.status === 'string' ? reserva.status : EStatusReservaContrato[reserva.status];
-  
+
   // 🟢 Pronto: DadosPreenchidos = true E status Confirmado
   if (reserva.dadosPreenchidos && (status === 'Confirmado' || reserva.status === EStatusReservaContrato.Confirmado)) {
     return {
@@ -115,7 +115,7 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por evento ou interessado..."
+            placeholder="Buscar por evento ou contratante..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -151,7 +151,7 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
         <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
           <FileText className="h-16 w-16 mb-4 opacity-50" />
           <p className="text-lg font-medium">Nenhuma reserva encontrada</p>
-          <p className="text-sm">As reservas aparecerão aqui quando eventos com interessados forem criados.</p>
+          <p className="text-sm">As reservas aparecerão aqui quando eventos com contratantes forem criados.</p>
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
@@ -160,7 +160,7 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
               <TableRow className="bg-muted/50">
                 <TableHead className="w-12">Status</TableHead>
                 <TableHead>Evento</TableHead>
-                <TableHead>Interessado</TableHead>
+                <TableHead>Contratante</TableHead>
                 <TableHead>Data do Evento</TableHead>
                 <TableHead>Valor</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -185,7 +185,7 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
                     <TableCell>
                       <div className="font-medium">{reserva.nomeInteressado || reserva.interessado?.nome || 'N/A'}</div>
                       <div className="text-xs text-muted-foreground">
-                        {reserva.interessado?.email}
+                        {reserva.interessado?.email || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell>
