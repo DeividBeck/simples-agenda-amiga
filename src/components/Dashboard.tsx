@@ -342,7 +342,7 @@ export const Dashboard = () => {
             <div className="grid gap-2">
               <Button onClick={() => setShowInteressadosModal(true)} variant="outline" className="w-full justify-start">
                 <Users className="h-4 w-4 mr-3" />
-                Gerenciar Interessados
+                Gerenciar Contratantes
               </Button>
 
               <Button onClick={handleTiposClick} variant="outline" className="w-full justify-start">
