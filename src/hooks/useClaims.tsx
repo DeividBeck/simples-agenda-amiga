@@ -3,6 +3,7 @@ import { useAuth } from './useAuth';
 
 interface ClaimsData {
   Calendario?: string[] | string;
+  Autenticacao?: string[] | string;
   [key: string]: string[] | string | any;
 }
 
@@ -61,8 +62,15 @@ export const useClaims = () => {
   const canEditTiposSalas = () => hasCalendarioClaim('TipoSalaEditar');
   const canDeleteTiposSalas = () => hasCalendarioClaim('TipoSalaExcluir');
 
-  // Claims para usuários
-  const canListarUsuarios = () => hasCalendarioClaim('ListarUsuario');
+  // Claims para usuários (módulo Autenticacao)
+  const hasAutenticacaoClaim = (action: string): boolean => {
+    const claims = getClaims();
+    const autenticacaoClaims = claims.Autenticacao || [];
+    const claimsArray = Array.isArray(autenticacaoClaims) ? autenticacaoClaims : [autenticacaoClaims];
+    return claimsArray.includes(action);
+  };
+
+  const canListarUsuarios = () => hasAutenticacaoClaim('ListarUsuario');
 
   // Verificar se é administrador (tem todos os claims)
   const isAdmin = () => {
