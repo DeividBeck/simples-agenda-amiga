@@ -588,9 +588,9 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="0">Local</SelectItem>
+                        <SelectItem value="0">Local (apenas esta paróquia)</SelectItem>
                         <SelectItem value="1">Entre Paróquias</SelectItem>
-                        <SelectItem value="2">Diocese</SelectItem>
+                        <SelectItem value="2">Diocese (toda a diocese)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -606,7 +606,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                   <AccordionTrigger className="px-4 hover:no-underline">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      <span>Dados do Contratante</span>
+                      <span>Dados do Interessado</span>
                       <Badge variant="secondary" className="ml-2">
                         {getCategoriaLabel(tipoEventoSelecionado!.categoriaContrato)}
                       </Badge>
@@ -616,7 +616,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                     <div className="space-y-4">
                       {/* Busca de interessado existente */}
                       <div className="relative">
-                        <FormLabel className="mb-2 block">Buscar Contratante Existente</FormLabel>
+                        <FormLabel className="mb-2 block">Buscar Interessado Existente</FormLabel>
                         <Popover open={showInteressadoSearch} onOpenChange={setShowInteressadoSearch}>
                           <PopoverTrigger asChild>
                             <Button
@@ -642,12 +642,12 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                           <PopoverContent className="w-full p-0" align="start">
                             <Command>
                               <CommandInput
-                                placeholder="Buscar contratante..."
+                                placeholder="Buscar interessado..."
                                 value={searchInteressado}
                                 onValueChange={setSearchInteressado}
                               />
                               <CommandList>
-                                <CommandEmpty>Nenhum Contratante encontrado.</CommandEmpty>
+                                <CommandEmpty>Nenhum interessado encontrado.</CommandEmpty>
                                 <CommandGroup>
                                   {interessadosFiltrados?.map((interessado) => (
                                     <CommandItem
@@ -684,8 +684,8 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                       <div className="border-t pt-4">
                         <p className="text-sm text-muted-foreground mb-4">
                           {interessadoSelecionado
-                            ? 'Dados do contratante selecionado (somente leitura):'
-                            : 'Ou preencha os dados de um novo contratante:'}
+                            ? 'Dados do interessado selecionado (somente leitura):'
+                            : 'Ou preencha os dados de um novo interessado:'}
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1374,7 +1374,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                 {(createEvento.isPending || createInteressado.isPending) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {createInteressado.isPending ? 'Salvando contratante...' : 'Criando...'}
+                    {createInteressado.isPending ? 'Salvando interessado...' : 'Criando...'}
                   </>
                 ) : (
                   showInteressadoSection ? 'Criar Reserva' : 'Criar Evento'

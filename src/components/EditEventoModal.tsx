@@ -345,7 +345,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
           interessadoId = novoInteressado.id;
         } catch (error: any) {
           toast({
-            title: 'Erro ao criar contratante.',
+            title: 'Erro ao criar interessado.',
             description: error.message,
             variant: 'destructive',
           });
@@ -505,9 +505,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="0">Local</SelectItem>
+                        <SelectItem value="0">Local (apenas esta paróquia)</SelectItem>
                         <SelectItem value="1">Entre Paróquias</SelectItem>
-                        <SelectItem value="2">Diocese</SelectItem>
+                        <SelectItem value="2">Diocese (toda a diocese)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -516,14 +516,14 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
               />
             </div>
 
-            {/* Seção do Contratante - Aparece apenas quando tipo de evento tem categoria de contrato */}
+            {/* Seção do Interessado - Aparece apenas quando tipo de evento tem categoria de contrato */}
             {showInteressadoSection && (
               <Accordion type="single" defaultValue="interessado" collapsible className="w-full">
                 <AccordionItem value="interessado" className="border rounded-lg">
                   <AccordionTrigger className="px-4 hover:no-underline">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      <span>Dados do Contratante</span>
+                      <span>Dados do Interessado</span>
                       <Badge variant="secondary" className="ml-2">
                         {getCategoriaLabel(tipoEventoSelecionado!.categoriaContrato)}
                       </Badge>
@@ -531,9 +531,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                   </AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
                     <div className="space-y-4">
-                      {/* Busca de contratante existente */}
+                      {/* Busca de interessado existente */}
                       <div className="space-y-2">
-                        <FormLabel>Buscar Contratante Existente</FormLabel>
+                        <FormLabel>Buscar Interessado Existente</FormLabel>
                         <Popover open={showInteressadoSearch} onOpenChange={setShowInteressadoSearch}>
                           <PopoverTrigger asChild>
                             <Button
@@ -557,7 +557,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                                 onValueChange={setSearchInteressado}
                               />
                               <CommandList>
-                                <CommandEmpty>Nenhum contratante encontrado.</CommandEmpty>
+                                <CommandEmpty>Nenhum interessado encontrado.</CommandEmpty>
                                 <CommandGroup>
                                   {interessadosFiltrados?.map((interessado) => (
                                     <CommandItem
@@ -594,8 +594,8 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                       <div className="border-t pt-4">
                         <p className="text-sm text-muted-foreground mb-4">
                           {interessadoSelecionado
-                            ? 'Dados do contratante selecionado (somente leitura):'
-                            : 'Ou preencha os dados para criar um novo contratante:'}
+                            ? 'Dados do interessado selecionado (somente leitura):'
+                            : 'Ou preencha os dados para criar um novo interessado:'}
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

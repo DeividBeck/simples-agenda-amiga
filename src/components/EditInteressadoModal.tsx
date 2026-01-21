@@ -112,7 +112,7 @@ export const EditInteressadoModal: React.FC<EditInteressadoModalProps> = ({
                 },
             });
             toast({
-                title: 'Contratante atualizado',
+                title: 'Interessado atualizado',
                 description: 'Os dados foram salvos com sucesso.',
             });
             onClose();
@@ -129,7 +129,7 @@ export const EditInteressadoModal: React.FC<EditInteressadoModalProps> = ({
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Editar Contratante</DialogTitle>
+                    <DialogTitle>Editar Interessado</DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

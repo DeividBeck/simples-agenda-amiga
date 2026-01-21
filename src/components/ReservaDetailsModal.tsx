@@ -209,7 +209,7 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  Dados do Solicitante
+                  Dados do Cliente
                   <Badge variant="outline" className="ml-auto text-xs">Somente leitura</Badge>
                 </CardTitle>
               </CardHeader>
