@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getCadastroUrl, getChangePasswordUrl, getListarUsuariosUrl, getAtualizarUsuarioUrl } from '@/config/api';
 import { useAuth } from '@/hooks/useAuth';
+import { getCadastroUrl, getChangePasswordUrl } from '@/config/api';
 
 interface CadastroForm {
   email: string;
@@ -12,23 +12,6 @@ export interface ChangePasswordForm {
   oldPassword: string;
   newPassword: string;
   confirmPassword: string;
-}
-
-export interface Acesso {
-  modulo: string;
-  acesso: string;
-}
-
-export interface Usuario {
-  email: string;
-  nome: string;
-  acessos: Acesso[];
-}
-
-export interface UpdateUsuarioForm {
-  email: string;
-  nome: string;
-  acessos: Acesso[];
 }
 
 export const useCadastroUsuario = () => {
@@ -100,67 +83,6 @@ export const useChangePassword = () => {
       }
 
       return response.ok;
-    },
-  });
-};
-
-export const useListarUsuarios = () => {
-  const { token } = useAuth();
-
-  return useQuery({
-    queryKey: ['usuarios'],
-    queryFn: async (): Promise<Usuario[]> => {
-      if (!token) {
-        throw new Error('Token não encontrado');
-      }
-
-      const response = await fetch(getListarUsuariosUrl(), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro ao listar usuários: ${response.status} - ${errorText}`);
-      }
-
-      return response.json();
-    },
-    enabled: !!token,
-  });
-};
-
-export const useAtualizarUsuario = () => {
-  const { token } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: UpdateUsuarioForm) => {
-      if (!token) {
-        throw new Error('Token não encontrado');
-      }
-
-      const response = await fetch(getAtualizarUsuarioUrl(data.email), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro ao atualizar usuário: ${response.status} - ${errorText}`);
-      }
-
-      return response.ok;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
     },
   });
 };

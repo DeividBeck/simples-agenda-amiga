@@ -28,7 +28,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useClaims } from '@/hooks/useClaims';
 import { CadastroUsuarioModal } from './CadastroUsuarioModal';
-import { GerenciarUsuariosModal } from './GerenciarUsuariosModal';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { ENivelCompartilhamento, Evento, Sala } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
@@ -71,7 +70,6 @@ export const Dashboard = () => {
     canEditEventos,
     canReadSalas,
     canCreateSalas,
-    canListarUsuarios,
     isAdmin
   } = useClaims();
   const {
@@ -354,11 +352,6 @@ export const Dashboard = () => {
                 <Users className="h-4 w-4 mr-3" />
                 Cadastrar Usuário
               </Button>}
-
-              {canListarUsuarios() && <Button onClick={() => setShowGerenciarUsuariosModal(true)} variant="outline" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-3" />
-                Gerenciar Usuários
-              </Button>}
             </div>
           </div>
         </div>
@@ -491,10 +484,6 @@ export const Dashboard = () => {
                 {isAdmin() && <DropdownMenuItem onClick={() => setShowCadastroUsuarioModal(true)}>
                   <Users className="h-4 w-4 mr-2" />
                   Cadastrar Usuário
-                </DropdownMenuItem>}
-                {canListarUsuarios() && <DropdownMenuItem onClick={() => setShowGerenciarUsuariosModal(true)}>
-                  <Users className="h-4 w-4 mr-2" />
-                  Gerenciar Usuários
                 </DropdownMenuItem>}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -669,8 +658,6 @@ export const Dashboard = () => {
 
     {/* Modais */}
     {showCadastroUsuarioModal && <CadastroUsuarioModal isOpen={showCadastroUsuarioModal} onClose={() => setShowCadastroUsuarioModal(false)} />}
-
-    {showGerenciarUsuariosModal && <GerenciarUsuariosModal isOpen={showGerenciarUsuariosModal} onClose={() => setShowGerenciarUsuariosModal(false)} />}
 
     <CreateEventoModal isOpen={showCreateModal} onClose={handleCloseCreateModal} initialDate={createEventDate} />
 

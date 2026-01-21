@@ -45,9 +45,3 @@ export const getCadastroUrl = () => API_CONFIG.CADASTRO_URL;
 
 // Função para obter URL de mudança de senha
 export const getChangePasswordUrl = () => API_CONFIG.CHANGE_PASSWORD_URL;
-
-// Função para obter URL de listagem de usuários
-export const getListarUsuariosUrl = () => `${API_CONFIG.USUARIOS_URL}/ListarUsuarios`;
-
-// Função para obter URL de atualização de usuário
-export const getAtualizarUsuarioUrl = (email: string) => `${API_CONFIG.USUARIOS_URL}/AtualizarUsuario/${encodeURIComponent(email)}`;

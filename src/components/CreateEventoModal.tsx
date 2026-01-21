@@ -402,7 +402,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
         interessadoId = novoInteressado.id;
       } catch (error: any) {
         toast({
-          title: 'Erro ao criar interessado.',
+          title: 'Erro ao criar contratante.',
           description: error.message,
           variant: 'destructive',
         });
