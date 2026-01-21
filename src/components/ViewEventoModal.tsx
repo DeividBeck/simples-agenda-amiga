@@ -120,9 +120,9 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
 
   const getNivelCompartilhamentoText = () => {
     switch (evento.nivelCompartilhamento) {
-      case 0: return 'Local (apenas esta paróquia)';
+      case 0: return 'Local';
       case 1: return 'Entre Paróquias';
-      case 2: return 'Diocese (toda a diocese)';
+      case 2: return 'Diocese';
       default: return 'Local';
     }
   };

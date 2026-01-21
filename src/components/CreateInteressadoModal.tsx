@@ -106,15 +106,15 @@ export const CreateInteressadoModal: React.FC<CreateInteressadoModalProps> = ({
                 emailFinanceiro: data.emailFinanceiro || null,
             });
             toast({
-                title: 'Interessado criado',
-                description: 'O interessado foi cadastrado com sucesso.',
+                title: 'contratante criado',
+                description: 'O contratante foi cadastrado com sucesso.',
             });
             reset();
             onClose();
         } catch (error) {
             toast({
                 title: 'Erro ao criar',
-                description: 'Não foi possível cadastrar o interessado.',
+                description: 'Não foi possível cadastrar o contratante.',
                 variant: 'destructive',
             });
         }
@@ -124,7 +124,7 @@ export const CreateInteressadoModal: React.FC<CreateInteressadoModalProps> = ({
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Novo Interessado</DialogTitle>
+                    <DialogTitle>Novo Contratante</DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
