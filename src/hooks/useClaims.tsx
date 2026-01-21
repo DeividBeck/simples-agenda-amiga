@@ -61,6 +61,9 @@ export const useClaims = () => {
   const canEditTiposSalas = () => hasCalendarioClaim('TipoSalaEditar');
   const canDeleteTiposSalas = () => hasCalendarioClaim('TipoSalaExcluir');
 
+  // Claims para usuários
+  const canListarUsuarios = () => hasCalendarioClaim('ListarUsuario');
+
   // Verificar se é administrador (tem todos os claims)
   const isAdmin = () => {
     const allClaims = [
@@ -91,6 +94,7 @@ export const useClaims = () => {
     canCreateTiposSalas,
     canEditTiposSalas,
     canDeleteTiposSalas,
+    canListarUsuarios,
     isAdmin
   };
 };

@@ -23,6 +23,11 @@ export const API_CONFIG = {
   CHANGE_PASSWORD_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/ChangePassword'
     : 'http://localhost:5247/api/Autenticacao/ChangePassword',
+
+  // API de usuários
+  USUARIOS_URL: isProduction
+    ? 'https://api.ecclesia.app.br/autenticacao/api/Usuarios'
+    : 'http://localhost:5247/api/Usuarios',
 };
 
 // Função helper para detectar ambiente
@@ -40,3 +45,9 @@ export const getCadastroUrl = () => API_CONFIG.CADASTRO_URL;
 
 // Função para obter URL de mudança de senha
 export const getChangePasswordUrl = () => API_CONFIG.CHANGE_PASSWORD_URL;
+
+// Função para obter URL de listagem de usuários
+export const getListarUsuariosUrl = () => `${API_CONFIG.USUARIOS_URL}/ListarUsuarios`;
+
+// Função para obter URL de atualização de usuário
+export const getAtualizarUsuarioUrl = (email: string) => `${API_CONFIG.USUARIOS_URL}/AtualizarUsuario/${encodeURIComponent(email)}`;
