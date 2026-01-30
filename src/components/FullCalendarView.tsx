@@ -117,8 +117,8 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
     .filter(e => e.sala?.id)
     .map(e => e.sala!.id);
 
-  const salasIndependentes = salas.filter(sala => 
-    !salasVinculadas.includes(sala.id) && 
+  const salasIndependentes = salas.filter(sala =>
+    !salasVinculadas.includes(sala.id) &&
     sala.status === EStatusReserva.Aprovado
   );
 
@@ -558,7 +558,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
             selectMirror={true}
             select={handleDateSelect}
             dateClick={handleDateClick}
-            dayMaxEvents={isMobile ? 3 : false}
+            dayMaxEvents={isMobile ? 3 : 3}
             moreLinkText={(num) => `+${num}`}
             height="auto"
             contentHeight="auto"
@@ -581,7 +581,7 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
               minute: '2-digit',
               hour12: false
             }}
-            dayHeaderFormat={isMobile ? { weekday: 'narrow' } : { weekday: 'short', day: 'numeric' }}
+            dayHeaderFormat={isMobile ? { weekday: 'narrow' } : { weekday: 'short' }}
             eventDisplay="auto"
             displayEventTime={!isMobile}
             stickyHeaderDates={true}
