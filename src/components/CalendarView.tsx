@@ -160,8 +160,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
               <div
                 key={day.toISOString()}
                 className={`min-h-[120px] p-2 border rounded-lg transition-colors ${isCurrentDay
-                    ? 'bg-blue-50 border-blue-200'
-                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                  ? 'bg-blue-50 border-blue-200'
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
                   }`}
               >
                 <div className={`text-sm font-medium mb-2 ${isCurrentDay ? 'text-blue-600' : 'text-gray-600'
@@ -179,11 +179,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                     const tipoSala = temSala ? tiposDeSalas.find(ts => ts.id === evento.sala!.tipoDeSalaId) : null;
 
                     const tituloCompleto = temSala
-                      ? `${evento.titulo} - 🏛️ ${tipoSala?.nome || 'Sala'}`
+                      ? `${evento.titulo} ${tipoSala?.nome || 'Sala'}`
                       : evento.titulo;
 
                     const tooltipText = temSala
-                      ? `${evento.titulo}\n🏛️ ${tipoSala?.nome || 'Sala'}\n${evento.descricao}\n${isAllDay ? 'Evento de dia inteiro' : format(startDate, 'HH:mm') + ' - ' + format(endDate, 'HH:mm')}`
+                      ? `${evento.titulo}\n ${tipoSala?.nome || 'Sala'}\n${evento.descricao}\n${isAllDay ? 'Evento de dia inteiro' : format(startDate, 'HH:mm') + ' - ' + format(endDate, 'HH:mm')}`
                       : `${evento.titulo}\n${evento.descricao}\n${isAllDay ? 'Evento de dia inteiro' : format(startDate, 'HH:mm') + ' - ' + format(endDate, 'HH:mm')}`;
 
                     if (isAllDay) {

@@ -361,8 +361,10 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         allDay: data.allDay,
       } : null;
 
-      const eventoAtualizado: Record<string, any> = {
-        ...evento,
+      const eventoAtualizado = {
+        id: evento.id,
+        filialId: evento.filialId,
+        eventoPaiId: evento.eventoPaiId,
         titulo: data.titulo,
         descricao: data.descricao,
         dataInicio: dataInicio.toISOString(),
@@ -373,14 +375,11 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         nomeFormulario: hasOnlineRegistration ? evento.nomeFormulario : (data.nomeFormulario && data.nomeFormulario !== 'generico' ? parseInt(data.nomeFormulario) as ENomeFormulario : null),
         slug: evento.slug,
         nivelCompartilhamento: parseInt(data.nivelCompartilhamento) as ENivelCompartilhamento,
+        recorrencia: parseInt(data.recorrencia),
+        fimRecorrencia: data.recorrencia !== '0' && data.fimRecorrencia ? data.fimRecorrencia.toISOString() : null,
         novaSala: novaSala,
-        tipoEvento: evento.tipoEvento,
+        interessadoId: interessadoId ?? null,
       };
-
-      // Incluir interessadoId se existir
-      if (interessadoId) {
-        eventoAtualizado.interessadoId = interessadoId;
-      }
 
       await updateEvento.mutateAsync({
         id: evento.id,

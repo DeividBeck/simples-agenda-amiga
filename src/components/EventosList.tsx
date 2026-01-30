@@ -95,8 +95,8 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
   const filteredEventos = eventos
     .filter(evento => {
       const matchesSearch = evento.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           evento.descricao.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTipo = filterTipo === 'all' || evento.tipoEventoId.toString() === filterTipo;
+        evento.descricao.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTipo = filterTipo === 'all' || evento.tipoEventoId?.toString() === filterTipo;
       return matchesSearch && matchesTipo;
     })
     .sort((a, b) => {
@@ -111,6 +111,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
 
   // Obter tipos únicos para o filtro
   const tiposUnicos = Array.from(new Set(eventos.map(e => e.tipoEvento)))
+    .filter(t => !!t)
     .filter((tipo, index, self) => self.findIndex(t => t.id === tipo.id) === index);
 
   if (isLoading) {
@@ -149,7 +150,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             <div>
               <label className="text-sm font-medium mb-2 block">Filtrar por tipo</label>
               <Select value={filterTipo} onValueChange={setFilterTipo}>
@@ -191,7 +192,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-600 mb-2">Nenhum evento encontrado</h3>
               <p className="text-gray-500">
-                {searchTerm || filterTipo !== 'all' 
+                {searchTerm || filterTipo !== 'all'
                   ? 'Tente ajustar os filtros de busca'
                   : 'Ainda não há eventos cadastrados'
                 }
@@ -203,7 +204,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
             const startDate = parseISO(evento.dataInicio);
             const endDate = parseISO(evento.dataFim);
             const isMultiDay = !isSameDay(startDate, endDate);
-            
+
             return (
               <Card key={evento.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -223,7 +224,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                               Inscrever-se
                             </Button>
                           )}
-                          
+
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">
@@ -247,7 +248,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Tem certeza que deseja excluir o evento "{evento.titulo}"? 
+                                        Tem certeza que deseja excluir o evento "{evento.titulo}"?
                                         Esta ação não pode ser desfeita.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
@@ -267,7 +268,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                           </DropdownMenu>
                         </div>
                       </CardTitle>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
@@ -279,7 +280,7 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                             format(startDate, 'dd/MM/yyyy', { locale: ptBR })
                           )}
                         </div>
-                        
+
                         {!evento.allDay && (
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
@@ -288,10 +289,10 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col items-end gap-2">
-                      <Badge 
-                        style={{ 
+                      <Badge
+                        style={{
                           backgroundColor: evento.tipoEvento.cor,
                           color: '#fff'
                         }}
@@ -300,8 +301,8 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                         <Tag className="h-3 w-3" />
                         {evento.tipoEvento.nome}
                       </Badge>
-                      
-                      <Badge 
+
+                      <Badge
                         className={`flex items-center gap-1 ${getNivelCompartilhamentoColor(evento.nivelCompartilhamento)}`}
                       >
                         <Globe className="h-3 w-3" />
@@ -310,17 +311,17 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   <p className="text-gray-700 mb-3">{evento.descricao}</p>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {evento.allDay && (
                       <Badge variant="secondary" className="text-xs">
                         Dia inteiro
                       </Badge>
                     )}
-                    
+
                     {evento.inscricaoAtiva && (
                       <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                         <Users className="h-3 w-3" />

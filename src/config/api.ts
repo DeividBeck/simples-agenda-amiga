@@ -6,7 +6,7 @@ const isProduction = import.meta.env.PROD;
 export const API_CONFIG = {
   // API principal (agenda paroquial)
   BASE_URL: isProduction
-    ? 'https://api.ecclesia.app.br/agendaparoquial/api'
+    ? 'https://ecclesia005.ddns.com.br:65080/agendaparoquial/api'
     : 'https://localhost:7096/api',
 
   // API de autenticação  
@@ -23,11 +23,6 @@ export const API_CONFIG = {
   CHANGE_PASSWORD_URL: isProduction
     ? 'https://api.ecclesia.app.br/autenticacao/api/Autenticacao/ChangePassword'
     : 'http://localhost:5247/api/Autenticacao/ChangePassword',
-
-  // API de usuários
-  USUARIOS_URL: isProduction
-    ? 'https://api.ecclesia.app.br/autenticacao/api/Usuarios'
-    : 'http://localhost:5247/api/Usuarios',
 };
 
 // Função helper para detectar ambiente
