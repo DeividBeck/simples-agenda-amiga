@@ -20,19 +20,19 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       locale={ptBR}
-      captionLayout="dropdown-buttons"
+      captionLayout="dropdown"
       fromYear={currentYear - 10}
       toYear={currentYear + 10}
       className={cn("p-3 pointer-events-auto", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium hidden",
-        caption_dropdowns: "flex gap-1",
-        dropdown_month: "relative inline-flex items-center",
-        dropdown_year: "relative inline-flex items-center",
-        dropdown: "absolute inset-0 w-full appearance-none opacity-0 z-10 cursor-pointer",
+        caption: "flex justify-center pt-1 relative items-center gap-1",
+        caption_label: "text-sm font-medium",
+        caption_dropdowns: "flex items-center gap-2",
+        dropdown_month: "",
+        dropdown_year: "",
+        dropdown: "appearance-none bg-background border border-input rounded-md px-2 py-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring",
         vhidden: "sr-only",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
