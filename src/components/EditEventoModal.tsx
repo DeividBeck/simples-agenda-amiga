@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -22,6 +21,7 @@ import { Evento, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoCon
 import { cn } from '@/lib/utils';
 import { useInscricaoLink } from '@/hooks/useInscricaoLink';
 import { RecurrenceScopeDialog } from './RecurrenceScopeDialog';
+import { MuiDatePickerField } from '@/components/ui/MuiDatePicker';
 
 // Funções de formatação
 const formatCpfCnpj = (value: string): string => {
@@ -716,34 +716,13 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Início *</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yyyy")
-                            ) : (
-                              <span>Selecione a data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-50" align="start" side="bottom" sideOffset={4}>
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <MuiDatePickerField
+                        value={field.value}
+                        onChange={field.onChange}
+                        label=""
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -755,35 +734,14 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Fim *</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            disabled={!watchAllDay}
-                          >
-                            {field.value ? (
-                              format(field.value, "dd/MM/yyyy")
-                            ) : (
-                              <span>Selecione a data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-50" align="start" side="bottom" sideOffset={4}>
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <MuiDatePickerField
+                        value={field.value}
+                        onChange={field.onChange}
+                        label=""
+                        disabled={!watchAllDay}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -870,34 +828,13 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Fim da Recorrência *</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "dd/MM/yyyy")
-                              ) : (
-                                <span>Selecione a data</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 z-50" align="start" side="bottom" sideOffset={4}>
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <MuiDatePickerField
+                          value={field.value}
+                          onChange={field.onChange}
+                          label=""
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
