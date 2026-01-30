@@ -96,7 +96,9 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
     .filter(evento => {
       const matchesSearch = evento.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         evento.descricao.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTipo = filterTipo === 'all' || evento.tipoEventoId?.toString() === filterTipo;
+      const matchesTipo = filterTipo === 'all' || 
+        evento.tipoEventoId?.toString() === filterTipo ||
+        evento.tipoEvento?.id?.toString() === filterTipo;
       return matchesSearch && matchesTipo;
     })
     .sort((a, b) => {
