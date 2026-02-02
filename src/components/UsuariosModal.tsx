@@ -21,12 +21,17 @@ interface UsuariosModalProps {
 export const UsuariosModal: React.FC<UsuariosModalProps> = ({ isOpen, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: usuarios, isLoading, error } = useUsuarios();
+  const { data: apiData, isLoading, error } = useUsuarios();
 
-  const filteredUsuarios = usuarios?.filter(u =>
+  console.log('Dados de usuários vindos da API:', apiData);
+
+  // Ajuste: Verifica se é um array direto ou se está dentro de .resultado
+  const usuarios = Array.isArray(apiData) ? apiData : (apiData as any)?.resultado || [];
+
+  const filteredUsuarios = Array.isArray(usuarios) ? usuarios.filter((u: Usuario) =>
     u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  ) : [];
 
   // Agrupa os acessos por módulo para exibição
   const getAcessosPorModulo = (usuario: Usuario) => {
@@ -53,7 +58,7 @@ export const UsuariosModal: React.FC<UsuariosModalProps> = ({ isOpen, onClose })
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Gerenciar Usuários
-              {usuarios && (
+              {Array.isArray(usuarios) && (
                 <Badge variant="secondary">{usuarios.length}</Badge>
               )}
             </div>
@@ -100,7 +105,7 @@ export const UsuariosModal: React.FC<UsuariosModalProps> = ({ isOpen, onClose })
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Acessos</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -116,36 +121,7 @@ export const UsuariosModal: React.FC<UsuariosModalProps> = ({ isOpen, onClose })
                           </span>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {Object.entries(acessosPorModulo).map(([modulo, acessos]) => (
-                              <Tooltip key={modulo}>
-                                <TooltipTrigger asChild>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="cursor-pointer flex items-center gap-1"
-                                  >
-                                    <Shield className="h-3 w-3" />
-                                    {modulo} ({acessos.length})
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom" className="max-w-xs">
-                                  <ScrollArea className="max-h-48">
-                                    <div className="space-y-1 p-1">
-                                      <p className="font-semibold text-sm mb-2">{modulo}</p>
-                                      {acessos.map((acesso, idx) => (
-                                        <Badge key={idx} variant="secondary" className="mr-1 mb-1 text-xs">
-                                          {acesso}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </ScrollArea>
-                                </TooltipContent>
-                              </Tooltip>
-                            ))}
-                            {usuario.acessos.length === 0 && (
-                              <span className="text-muted-foreground text-sm">Sem acessos</span>
-                            )}
-                          </div>
+
                         </TableCell>
                       </TableRow>
                     );
