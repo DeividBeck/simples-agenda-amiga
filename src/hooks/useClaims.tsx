@@ -28,6 +28,21 @@ export const useClaims = () => {
     return claims;
   };
 
+  const hasAutenticacaoClaim = (action: string): boolean => {
+    const claims = getClaims();
+    const autenticacaoClaims = claims.Autenticacao || [];
+
+    // Garantir que sempre seja tratado como array
+    const claimsArray = Array.isArray(autenticacaoClaims) ? autenticacaoClaims : [autenticacaoClaims];
+
+    // Se o usuário tiver a claim 'Admin' em Calendario, tem acesso total
+    if (hasCalendarioClaim('Admin')) {
+      return true;
+    }
+
+    return claimsArray.includes(action);
+  };
+
   const hasCalendarioClaim = (action: string): boolean => {
     const claims = getClaims();
     const calendarioClaims = claims.Calendario || [];
@@ -86,9 +101,13 @@ export const useClaims = () => {
     return hasCalendarioClaim('Admin');
   };
 
+  // Claims para usuários (módulo Autenticacao)
+  const canListUsuarios = () => hasAutenticacaoClaim('ListarUsuario');
+
   return {
     getClaims,
     hasCalendarioClaim,
+    hasAutenticacaoClaim,
     canReadEventos,
     canCreateEventos,
     canEditEventos,
@@ -114,6 +133,7 @@ export const useClaims = () => {
     canCreateReservas,
     canEditReservas,
     canDeleteReservas,
+    canListUsuarios,
     isAdmin
   };
 };
