@@ -20,6 +20,7 @@ import { TiposSalasModal } from './TiposSalasModal';
 import { TiposSelectionModal } from './TiposSelectionModal';
 import { NotificationsDropdown } from './NotificationsDropdown';
 import { InteressadosModal } from './InteressadosModal';
+import { UsuariosModal } from './UsuariosModal';
 import { FullCalendarView } from './FullCalendarView';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { useEventos, useTiposEventos, useTiposDeSalas, useSalas, useSalasPendentes } from '@/hooks/useApi';
@@ -46,6 +47,7 @@ export const Dashboard = () => {
   const [showCadastroUsuarioModal, setShowCadastroUsuarioModal] = useState(false);
   const [showGerenciarUsuariosModal, setShowGerenciarUsuariosModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showUsuariosModal, setShowUsuariosModal] = useState(false);
 
   const [showInteressadosModal, setShowInteressadosModal] = useState(false);
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
@@ -75,6 +77,7 @@ export const Dashboard = () => {
     canApproveSalas,
     canReadTiposEventos,
     canReadTiposSalas,
+    canListUsuarios,
     isAdmin
   } = useClaims();
   const {
@@ -364,6 +367,13 @@ export const Dashboard = () => {
                 <Users className="h-4 w-4 mr-3" />
                 Cadastrar Usuário
               </Button>}
+
+              {canListUsuarios() && (
+                <Button onClick={() => setShowUsuariosModal(true)} variant="outline" className="w-full justify-start">
+                  <Users className="h-4 w-4 mr-3" />
+                  Gerenciar Usuários
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -501,6 +511,12 @@ export const Dashboard = () => {
                   <Users className="h-4 w-4 mr-2" />
                   Cadastrar Usuário
                 </DropdownMenuItem>}
+                {canListUsuarios() && (
+                  <DropdownMenuItem onClick={() => setShowUsuariosModal(true)}>
+                    <Users className="h-4 w-4 mr-2" />
+                    Gerenciar Usuários
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -698,6 +714,8 @@ export const Dashboard = () => {
     <ChangePasswordModal isOpen={showChangePasswordModal} onClose={() => setShowChangePasswordModal(false)} />
 
     <InteressadosModal isOpen={showInteressadosModal} onClose={() => setShowInteressadosModal(false)} />
+
+    <UsuariosModal isOpen={showUsuariosModal} onClose={() => setShowUsuariosModal(false)} />
 
   </div>;
 };
