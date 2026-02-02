@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -21,7 +22,6 @@ import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorren
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Clock, Users, FileText, Mail, Phone, Building2, DollarSign, Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { MuiDatePickerField } from '@/components/ui/MuiDatePicker';
 
 // Funções de formatação
 const formatCpfCnpj = (value: string): string => {
@@ -871,13 +871,34 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                           render={({ field }) => (
                             <FormItem className="flex flex-col">
                               <FormLabel>Vencimento do Sinal</FormLabel>
-                              <FormControl>
-                                <MuiDatePickerField
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  label=""
-                                />
-                              </FormControl>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      {field.value ? (
+                                        format(field.value, "dd/MM/yyyy")
+                                      ) : (
+                                        <span>Selecione a data</span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 z-50" align="start" side="bottom" sideOffset={4}>
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -950,11 +971,32 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                                   </div>
                                   <div>
                                     <FormLabel className="text-xs">Vencimento</FormLabel>
-                                    <MuiDatePickerField
-                                      value={parcela.dataVencimento}
-                                      onChange={(date) => handleParcelaChange(index, 'dataVencimento', date || new Date())}
-                                      label=""
-                                    />
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          className={cn(
+                                            "w-full h-9 pl-3 text-left font-normal",
+                                            !parcela.dataVencimento && "text-muted-foreground"
+                                          )}
+                                        >
+                                          {parcela.dataVencimento ? (
+                                            format(parcela.dataVencimento, "dd/MM/yyyy")
+                                          ) : (
+                                            <span>Selecione</span>
+                                          )}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0 z-50" align="start" side="bottom" sideOffset={4}>
+                                        <Calendar
+                                          mode="single"
+                                          selected={parcela.dataVencimento}
+                                          onSelect={(date) => handleParcelaChange(index, 'dataVencimento', date || new Date())}
+                                          initialFocus
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <div className="flex items-center gap-1">
@@ -1015,10 +1057,13 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Início *</FormLabel>
                     <FormControl>
-                      <MuiDatePickerField
-                        value={field.value}
-                        onChange={field.onChange}
-                        label=""
+                      <Input
+                        type="date"
+                        value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => {
+                          const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined;
+                          field.onChange(date);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -1033,11 +1078,13 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Fim *</FormLabel>
                     <FormControl>
-                      <MuiDatePickerField
-                        value={field.value}
-                        onChange={field.onChange}
-                        label=""
-                        disabled={!watchAllDay}
+                      <Input
+                        type="date"
+                        value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => {
+                          const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined;
+                          field.onChange(date);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -1164,10 +1211,13 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                     <FormItem className="flex flex-col">
                       <FormLabel>Fim da Recorrência *</FormLabel>
                       <FormControl>
-                        <MuiDatePickerField
-                          value={field.value}
-                          onChange={field.onChange}
-                          label=""
+                        <Input
+                          type="date"
+                          value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                          onChange={(e) => {
+                            const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined;
+                            field.onChange(date);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

@@ -1,6 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,11 +13,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useUpdateSala, useTiposDeSalas } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 import { Sala, EStatusReserva } from '@/types/api';
 import { cn } from '@/lib/utils';
-import { MuiDatePickerField } from '@/components/ui/MuiDatePicker';
 
 const formSchema = z.object({
   descricao: z.string().min(1, 'Descrição é obrigatória'),
@@ -243,13 +245,39 @@ export const EditSalaModal: React.FC<EditSalaModalProps> = ({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Início *</FormLabel>
-                    <FormControl>
-                      <MuiDatePickerField
-                        value={field.value}
-                        onChange={field.onChange}
-                        label=""
-                      />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "dd/MM/yyyy")
+                            ) : (
+                              <span>Selecione a data</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                          className="p-3"
+                          locale={ptBR}
+                          captionLayout="dropdown-buttons"
+                          fromYear={2000}
+                          toYear={2100}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -261,14 +289,40 @@ export const EditSalaModal: React.FC<EditSalaModalProps> = ({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Fim *</FormLabel>
-                    <FormControl>
-                      <MuiDatePickerField
-                        value={field.value}
-                        onChange={field.onChange}
-                        label=""
-                        disabled={!watchAllDay}
-                      />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            disabled={!watchAllDay}
+                          >
+                            {field.value ? (
+                              format(field.value, "dd/MM/yyyy")
+                            ) : (
+                              <span>Selecione a data</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                          className="p-3"
+                          locale={ptBR}
+                          captionLayout="dropdown-buttons"
+                          fromYear={2000}
+                          toYear={2100}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { CalendarIcon, Copy, Clock, Users, FileText, Building, User, Search } from 'lucide-react';
+import { Copy, Clock, Users, FileText, Building, User, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +21,6 @@ import { Evento, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoCon
 import { cn } from '@/lib/utils';
 import { useInscricaoLink } from '@/hooks/useInscricaoLink';
 import { RecurrenceScopeDialog } from './RecurrenceScopeDialog';
-import { MuiDatePickerField } from '@/components/ui/MuiDatePicker';
 
 // Funções de formatação
 const formatCpfCnpj = (value: string): string => {
@@ -374,12 +373,16 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         inscricaoAtiva: hasOnlineRegistration ? evento.inscricaoAtiva : data.inscricaoAtiva,
         nomeFormulario: hasOnlineRegistration ? evento.nomeFormulario : (data.nomeFormulario && data.nomeFormulario !== 'generico' ? parseInt(data.nomeFormulario) as ENomeFormulario : null),
         slug: evento.slug,
-        nivelCompartilhamento: parseInt(data.nivelCompartilhamento) as ENivelCompartilhamento,
         recorrencia: parseInt(data.recorrencia),
         fimRecorrencia: data.recorrencia !== '0' && data.fimRecorrencia ? data.fimRecorrencia.toISOString() : null,
         novaSala: novaSala,
         interessadoId: interessadoId ?? null,
       };
+
+      // Incluir interessadoId se existir
+      if (interessadoId) {
+        eventoAtualizado.interessadoId = interessadoId;
+      }
 
       await updateEvento.mutateAsync({
         id: evento.id,
@@ -717,10 +720,13 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Início *</FormLabel>
                     <FormControl>
-                      <MuiDatePickerField
-                        value={field.value}
-                        onChange={field.onChange}
-                        label=""
+                      <Input
+                        type="date"
+                        value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => {
+                          const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined;
+                          field.onChange(date);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -735,11 +741,14 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                   <FormItem className="flex flex-col">
                     <FormLabel>Data de Fim *</FormLabel>
                     <FormControl>
-                      <MuiDatePickerField
-                        value={field.value}
-                        onChange={field.onChange}
-                        label=""
+                      <Input
+                        type="date"
                         disabled={!watchAllDay}
+                        value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => {
+                          const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined;
+                          field.onChange(date);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -829,10 +838,13 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                     <FormItem className="flex flex-col">
                       <FormLabel>Fim da Recorrência *</FormLabel>
                       <FormControl>
-                        <MuiDatePickerField
-                          value={field.value}
-                          onChange={field.onChange}
-                          label=""
+                        <Input
+                          type="date"
+                          value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                          onChange={(e) => {
+                            const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined;
+                            field.onChange(date);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

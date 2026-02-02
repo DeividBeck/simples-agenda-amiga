@@ -35,12 +35,25 @@ const AVAILABLE_CLAIMS = [
   { id: 'SalaCriar', label: 'Criar Salas', category: 'Salas' },
   { id: 'SalaEditar', label: 'Editar Salas', category: 'Salas' },
   { id: 'SalaExcluir', label: 'Excluir Salas', category: 'Salas' },
+  { id: 'SalaAprovar', label: 'Aprovar Salas', category: 'Salas' },
 
   // Tipos de Salas
   { id: 'TipoSalaLer', label: 'Visualizar Tipos de Salas', category: 'Tipos de Salas' },
   { id: 'TipoSalaCriar', label: 'Criar Tipos de Salas', category: 'Tipos de Salas' },
   { id: 'TipoSalaEditar', label: 'Editar Tipos de Salas', category: 'Tipos de Salas' },
   { id: 'TipoSalaExcluir', label: 'Excluir Tipos de Salas', category: 'Tipos de Salas' },
+
+  // // Contratantes
+  // { id: 'ContratanteLer', label: 'Visualizar Contratantes', category: 'Contratantes' },
+  // { id: 'ContratanteCriar', label: 'Criar Contratantes', category: 'Contratantes' },
+  // { id: 'ContratanteEditar', label: 'Editar Contratantes', category: 'Contratantes' },
+  // { id: 'ContratanteExcluir', label: 'Excluir Contratantes', category: 'Contratantes' },
+
+  // // Reservas
+  // { id: 'ReservaLer', label: 'Visualizar Reservas', category: 'Reservas' },
+  // { id: 'ReservaCriar', label: 'Criar Reservas', category: 'Reservas' },
+  // { id: 'ReservaEditar', label: 'Editar Reservas', category: 'Reservas' },
+  // { id: 'ReservaExcluir', label: 'Excluir Reservas', category: 'Reservas' },
 ];
 
 // Agrupar claims por categoria
@@ -139,7 +152,15 @@ export const CadastroUsuarioModal: React.FC<CadastroUsuarioModalProps> = ({
     setFormData(prev => ({ ...prev, claims: [] }));
   };
 
-  const isAdmin = formData.claims.length === AVAILABLE_CLAIMS.length;
+  const isAdmin = formData.claims.includes('Admin');
+
+  const handleAdminChange = (checked: boolean) => {
+    if (checked) {
+      setFormData(prev => ({ ...prev, claims: ['Admin'] }));
+    } else {
+      setFormData(prev => ({ ...prev, claims: [] }));
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -180,21 +201,25 @@ export const CadastroUsuarioModal: React.FC<CadastroUsuarioModalProps> = ({
             </div>
           </div>
 
-          {/* Status do usuário */}
-          {isAdmin && (
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <Shield className="h-4 w-4" />
-                <span className="font-medium">Usuário Administrador</span>
+          {/* Opção de Administrador */}
+          {/* <Card className={`border-blue-200 bg-blue-50 ${isAdmin ? 'ring-2 ring-blue-500' : ''}`}>
+            <CardContent className="p-4 flex items-start space-x-3">
+              <Checkbox
+                id="admin-access"
+                checked={isAdmin}
+                onCheckedChange={(checked) => handleAdminChange(!!checked)}
+                className="mt-1"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="admin-access" className="font-semibold cursor-pointer text-blue-900">
+                  Administrador do Sistema (Acesso Total)
+                </Label>
               </div>
-              <p className="text-sm text-yellow-700 mt-1">
-                Este usuário terá acesso total ao sistema com todas as permissões.
-              </p>
-            </div>
-          )}
+            </CardContent>
+          </Card> */}
 
           {/* Área scrollável com permissões */}
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className={`flex-1 overflow-y-auto min-h-0 transition-opacity duration-200 ${isAdmin ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                 <div>

@@ -11,6 +11,7 @@ import { ColorSelector } from './ColorSelector';
 import { useUpdateTipoEvento } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 import { TipoEvento, ETipoContrato } from '@/types/api';
+import { useClaims } from '@/hooks/useClaims';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
@@ -27,13 +28,14 @@ interface EditTipoEventoModalProps {
   tipoEvento: TipoEvento | null;
 }
 
-export const EditTipoEventoModal: React.FC<EditTipoEventoModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  tipoEvento 
+export const EditTipoEventoModal: React.FC<EditTipoEventoModalProps> = ({
+  isOpen,
+  onClose,
+  tipoEvento
 }) => {
   const { toast } = useToast();
   const updateTipoEvento = useUpdateTipoEvento();
+  const { canReadReservas } = useClaims();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -128,43 +130,45 @@ export const EditTipoEventoModal: React.FC<EditTipoEventoModalProps> = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="categoriaContrato"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria de Contrato</FormLabel>
-                  <Select 
-                    value={field.value.toString()} 
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={ETipoContrato.Nenhum.toString()}>Nenhum</SelectItem>
-                      <SelectItem value={ETipoContrato.Casamento.toString()}>Casamento</SelectItem>
-                      <SelectItem value={ETipoContrato.Diverso.toString()}>Diverso</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {canReadReservas() && (
+              <FormField
+                control={form.control}
+                name="categoriaContrato"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria de Contrato</FormLabel>
+                    <Select
+                      value={field.value.toString()}
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={ETipoContrato.Nenhum.toString()}>Nenhum</SelectItem>
+                        <SelectItem value={ETipoContrato.Casamento.toString()}>Casamento</SelectItem>
+                        <SelectItem value={ETipoContrato.Diverso.toString()}>Diverso</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="flex gap-3 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleClose}
                 className="flex-1"
               >
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={updateTipoEvento.isPending}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >

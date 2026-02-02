@@ -129,7 +129,7 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             <div>
               <label className="text-sm font-medium mb-2 block">Filtrar por status</label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -168,9 +168,9 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
           <Card>
             <CardContent className="text-center py-8">
               <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-600 mb-2">Nenhuma reserva encontrada</h3>
+              <h3 className="text-lg font-medium text-gray-600 mb-2">Nenhum contrato encontrado</h3>
               <p className="text-gray-500">
-                {searchTerm || filterStatus !== 'all' 
+                {searchTerm || filterStatus !== 'all'
                   ? 'Tente ajustar os filtros de busca'
                   : 'Ainda não há reservas de salas cadastradas'
                 }
@@ -180,7 +180,7 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
         ) : (
           filteredSalas.map(sala => {
             const StatusIcon = getStatusIcon(sala.status);
-            
+
             return (
               <Card key={sala.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -189,7 +189,7 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                       <CardTitle className="text-lg mb-2 flex items-center gap-2">
                         <MapPin className="h-5 w-5" />
                         {sala.tipoDeSala?.nome || 'Sala'}
-                        
+
                         <div className="ml-auto flex items-center gap-2">
                           <Button
                             size="sm"
@@ -198,7 +198,7 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                           >
                             Ver Detalhes
                           </Button>
-                          
+
                           {(canEditSalas() || canDeleteSalas()) && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -225,7 +225,7 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                                       <AlertDialogHeader>
                                         <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                          Tem certeza que deseja excluir esta reserva de sala? 
+                                          Tem certeza que deseja excluir esta reserva de sala?
                                           Esta ação não pode ser desfeita.
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
@@ -246,7 +246,7 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                           )}
                         </div>
                       </CardTitle>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
@@ -256,7 +256,7 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                             `${format(parseISO(sala.dataInicio), 'dd/MM/yyyy HH:mm', { locale: ptBR })} - ${format(parseISO(sala.dataFim), 'HH:mm', { locale: ptBR })}`
                           )}
                         </div>
-                        
+
                         {sala.tipoDeSala?.capacidade && (
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
@@ -265,23 +265,23 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col items-end gap-2">
-                      <Badge 
-                        style={{ 
+                      <Badge
+                        style={{
                           backgroundColor: sala.tipoDeSala?.cor,
                           color: '#fff'
                         }}
                         className="flex items-center gap-1"
                       >
-                        <div 
+                        <div
                           className="w-2 h-2 rounded-full"
                           style={{ backgroundColor: '#fff' }}
                         />
                         {sala.tipoDeSala?.nome}
                       </Badge>
-                      
-                      <Badge 
+
+                      <Badge
                         className={`flex items-center gap-1 ${getStatusColor(sala.status)}`}
                       >
                         <StatusIcon className="h-3 w-3" />
@@ -290,10 +290,10 @@ export const SalasList: React.FC<SalasListProps> = ({ salas, isLoading, onEditSa
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   <p className="text-gray-700 mb-3">{sala.descricao}</p>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {sala.allDay && (
                       <Badge variant="secondary" className="text-xs">

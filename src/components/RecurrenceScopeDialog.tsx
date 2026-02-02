@@ -33,7 +33,6 @@ export const RecurrenceScopeDialog: React.FC<RecurrenceScopeDialogProps> = ({
     : `Como você deseja excluir "${eventTitle}"?`;
 
   const handleScope = (scope: number) => {
-    console.log('RecurrenceScopeDialog - handleScope:', scope);
     onConfirm(scope);
     onClose();
   };

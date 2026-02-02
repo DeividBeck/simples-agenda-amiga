@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Reserva, EStatusReservaContrato } from '@/types/api';
 import { ReservaDetailsModal } from './ReservaDetailsModal';
+import { useClaims } from '@/hooks/useClaims';
 
 interface ReservasListProps {
   reservas: Reserva[];
@@ -69,6 +70,7 @@ const getStatusInfo = (reserva: Reserva) => {
 export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReserva, setSelectedReserva] = useState<Reserva | null>(null);
+  const { canEditReservas } = useClaims();
 
   const filteredReservas = React.useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -150,8 +152,8 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
       {sortedReservas.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
           <FileText className="h-16 w-16 mb-4 opacity-50" />
-          <p className="text-lg font-medium">Nenhuma reserva encontrada</p>
-          <p className="text-sm">As reservas aparecerão aqui quando eventos com contratantes forem criados.</p>
+          <p className="text-lg font-medium">Nenhum contrato encontrado</p>
+          <p className="text-sm">Os contratos aparecerão aqui quando eventos com contratantes forem criados.</p>
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
@@ -237,6 +239,7 @@ export const ReservasList: React.FC<ReservasListProps> = ({ reservas, isLoading 
         isOpen={!!selectedReserva}
         onClose={() => setSelectedReserva(null)}
         reserva={selectedReserva}
+        canEdit={canEditReservas()}
       />
     </div>
   );

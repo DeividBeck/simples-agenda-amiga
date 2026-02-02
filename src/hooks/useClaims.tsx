@@ -34,6 +34,12 @@ export const useClaims = () => {
 
     // Garantir que sempre seja tratado como array
     const claimsArray = Array.isArray(calendarioClaims) ? calendarioClaims : [calendarioClaims];
+
+    // Se o usuário tiver a claim 'Admin', ele tem acesso total (bypass nas outras verificações)
+    if (claimsArray.includes('Admin')) {
+      return true;
+    }
+
     const hasClaim = claimsArray.includes(action);
     return hasClaim;
   };
@@ -49,6 +55,7 @@ export const useClaims = () => {
   const canCreateSalas = () => hasCalendarioClaim('SalaCriar');
   const canEditSalas = () => hasCalendarioClaim('SalaEditar');
   const canDeleteSalas = () => hasCalendarioClaim('SalaExcluir');
+  const canApproveSalas = () => hasCalendarioClaim('SalaAprovar');
 
   // Claims para tipos de eventos - Adicionando edição e exclusão
   const canReadTiposEventos = () => hasCalendarioClaim('TipoEventoLer');
@@ -62,15 +69,21 @@ export const useClaims = () => {
   const canEditTiposSalas = () => hasCalendarioClaim('TipoSalaEditar');
   const canDeleteTiposSalas = () => hasCalendarioClaim('TipoSalaExcluir');
 
-  // Verificar se é administrador (tem todos os claims)
+  // Claims para contratantes - Adicionando leitura, criação, edição e exclusão
+  const canReadContratantes = () => hasCalendarioClaim('ContratanteLer');
+  const canCreateContratantes = () => hasCalendarioClaim('ContratanteCriar');
+  const canEditContratantes = () => hasCalendarioClaim('ContratanteEditar');
+  const canDeleteContratantes = () => hasCalendarioClaim('ContratanteExcluir');
+
+  // Claims para reservas
+  const canReadReservas = () => hasCalendarioClaim('ReservaLer');
+  const canCreateReservas = () => hasCalendarioClaim('ReservaCriar');
+  const canEditReservas = () => hasCalendarioClaim('ReservaEditar');
+  const canDeleteReservas = () => hasCalendarioClaim('ReservaExcluir');
+
+  // Verificar se é administrador (tem a claim específica de Admin)
   const isAdmin = () => {
-    const allClaims = [
-      'EventoLer', 'EventoCriar', 'EventoEditar', 'EventoExcluir',
-      'TipoEventoLer', 'TipoEventoCriar', 'TipoEventoEditar', 'TipoEventoExcluir',
-      'SalaLer', 'SalaCriar', 'SalaEditar', 'SalaExcluir',
-      'TipoSalaLer', 'TipoSalaCriar', 'TipoSalaEditar', 'TipoSalaExcluir'
-    ];
-    return allClaims.every(claim => hasCalendarioClaim(claim));
+    return hasCalendarioClaim('Admin');
   };
 
   return {
@@ -84,6 +97,7 @@ export const useClaims = () => {
     canCreateSalas,
     canEditSalas,
     canDeleteSalas,
+    canApproveSalas,
     canReadTiposEventos,
     canCreateTiposEventos,
     canEditTiposEventos,
@@ -92,6 +106,14 @@ export const useClaims = () => {
     canCreateTiposSalas,
     canEditTiposSalas,
     canDeleteTiposSalas,
+    canReadContratantes,
+    canCreateContratantes,
+    canEditContratantes,
+    canDeleteContratantes,
+    canReadReservas,
+    canCreateReservas,
+    canEditReservas,
+    canDeleteReservas,
     isAdmin
   };
 };

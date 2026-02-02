@@ -21,6 +21,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useClaims } from '@/hooks/useClaims';
 
 interface InteressadosModalProps {
     isOpen: boolean;
@@ -36,6 +37,7 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
 
     const { data: interessados, isLoading, error } = useInteressados();
     const deleteInteressado = useDeleteInteressado();
+    const { canCreateContratantes, canEditContratantes, canDeleteContratantes } = useClaims();
 
     const filteredInteressados = interessados?.filter(i =>
         i.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,14 +86,16 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
                                     <Badge variant="secondary">{interessados.length}</Badge>
                                 )}
                             </div>
-                            <Button
-                                onClick={() => setShowCreateModal(true)}
-                                size="sm"
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Novo Contratante
-                            </Button>
+                            {canCreateContratantes() && (
+                                <Button
+                                    onClick={() => setShowCreateModal(true)}
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Novo Contratante
+                                </Button>
+                            )}
                         </DialogTitle>
                     </DialogHeader>
 
@@ -171,21 +175,25 @@ export const InteressadosModal: React.FC<InteressadosModalProps> = ({ isOpen, on
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => setEditingInteressado(interessado)}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                            onClick={() => setDeletingInteressado(interessado)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
+                                                        {canEditContratantes() && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => setEditingInteressado(interessado)}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                        {canDeleteContratantes() && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                onClick={() => setDeletingInteressado(interessado)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>

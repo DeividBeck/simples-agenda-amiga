@@ -33,14 +33,9 @@ export const useSala = (id: number) => {
 export const useCreateSala = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canCreateSalas } = useClaims();
 
   return useMutation({
     mutationFn: (data: CreateSalaRequest) => {
-      if (!canCreateSalas()) {
-        throw new Error('Você não tem permissão para criar salas');
-      }
-
       // Converter datas para formato ISO UTC
       const dataInicioISO = new Date(data.dataInicio).toISOString();
       const dataFimISO = new Date(data.dataFim).toISOString();
@@ -107,14 +102,9 @@ interface UpdateSalaData {
 export const useUpdateSala = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canEditSalas } = useClaims();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateSalaData }) => {
-      if (!canEditSalas()) {
-        throw new Error('Você não tem permissão para editar salas');
-      }
-
       // Estrutura conforme esperado pelo backend
       const requestData = {
         id: data.id,
@@ -159,14 +149,9 @@ export const useSalasPendentes = () => {
 export const useUpdateSalaStatus = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canEditSalas } = useClaims();
 
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: number }) => {
-      if (!canEditSalas()) {
-        throw new Error('Você não tem permissão para alterar o status das salas');
-      }
-
       return fetchApi(`/${filialSelecionada}/Salas/${id}/status`, token, {
         method: 'PUT',
         body: JSON.stringify({ status }),
@@ -183,14 +168,9 @@ export const useUpdateSalaStatus = () => {
 export const useDeleteSala = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canDeleteSalas } = useClaims();
 
   return useMutation({
     mutationFn: (id: number) => {
-      if (!canDeleteSalas()) {
-        throw new Error('Você não tem permissão para excluir salas');
-      }
-
       return fetchApi(`/${filialSelecionada}/Salas/${id}`, token, {
         method: 'DELETE',
       });

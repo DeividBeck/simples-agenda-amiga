@@ -178,59 +178,24 @@ export const MuiDateTimePickerField: React.FC<MuiDateTimePickerProps> = ({
             },
           },
           popper: {
+            disablePortal: false,
             sx: {
               zIndex: 9999,
+              pointerEvents: 'auto',
+
+              '& *': {
+                pointerEvents: 'auto',
+              },
+
               '& .MuiPaper-root': {
                 backgroundColor: 'hsl(var(--background))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '0.5rem',
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
               },
-              '& .MuiPickersDay-root': {
-                color: 'hsl(var(--foreground))',
-                '&:hover': {
-                  backgroundColor: 'hsl(var(--accent))',
-                },
-                '&.Mui-selected': {
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                },
-              },
-              '& .MuiDayCalendar-weekDayLabel': {
-                color: 'hsl(var(--muted-foreground))',
-              },
-              '& .MuiPickersCalendarHeader-label': {
-                color: 'hsl(var(--foreground))',
-              },
-              '& .MuiIconButton-root': {
-                color: 'hsl(var(--foreground))',
-              },
-              '& .MuiPickersYear-yearButton': {
-                color: 'hsl(var(--foreground))',
-                '&.Mui-selected': {
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                },
-              },
-              '& .MuiPickersMonth-monthButton': {
-                color: 'hsl(var(--foreground))',
-                '&.Mui-selected': {
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                },
-              },
-              '& .MuiMultiSectionDigitalClock-root': {
-                color: 'hsl(var(--foreground))',
-              },
-              '& .MuiMultiSectionDigitalClockSection-item': {
-                color: 'hsl(var(--foreground))',
-                '&.Mui-selected': {
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                },
-              },
             },
           },
+
         }}
       />
     </LocalizationProvider>

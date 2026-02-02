@@ -70,6 +70,11 @@ export const Dashboard = () => {
     canEditEventos,
     canReadSalas,
     canCreateSalas,
+    canReadContratantes,
+    canReadReservas,
+    canApproveSalas,
+    canReadTiposEventos,
+    canReadTiposSalas,
     isAdmin
   } = useClaims();
   const {
@@ -79,6 +84,9 @@ export const Dashboard = () => {
 
   // Verificar se o usuário pode acessar o calendário (eventos OU salas)
   const canAccessCalendar = canReadEventos() || canReadSalas();
+
+  // Verificar se o usuário pode acessar configurações de tipos
+  const canManageTipos = canReadTiposEventos() || canReadTiposSalas();
 
   // Buscar dados apenas se o usuário tem permissão para cada tipo
   const {
@@ -338,15 +346,19 @@ export const Dashboard = () => {
             <h3 className="text-sm font-medium text-gray-900 uppercase tracking-wide">Sistema</h3>
 
             <div className="grid gap-2">
-              <Button onClick={() => setShowInteressadosModal(true)} variant="outline" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-3" />
-                Gerenciar Contratantes
-              </Button>
+              {canReadContratantes() && (
+                <Button onClick={() => setShowInteressadosModal(true)} variant="outline" className="w-full justify-start">
+                  <Users className="h-4 w-4 mr-3" />
+                  Gerenciar Contratantes
+                </Button>
+              )}
 
-              <Button onClick={handleTiposClick} variant="outline" className="w-full justify-start">
-                <Settings className="h-4 w-4 mr-3" />
-                Gerenciar Tipos
-              </Button>
+              {canManageTipos && (
+                <Button onClick={handleTiposClick} variant="outline" className="w-full justify-start">
+                  <Settings className="h-4 w-4 mr-3" />
+                  Gerenciar Tipos
+                </Button>
+              )}
 
               {isAdmin() && <Button onClick={() => setShowCadastroUsuarioModal(true)} variant="outline" className="w-full justify-start">
                 <Users className="h-4 w-4 mr-3" />
@@ -430,7 +442,7 @@ export const Dashboard = () => {
             </div>
 
             {/* Notificações Dropdown - apenas para admins */}
-            {isAdmin() && <NotificationsDropdown />}
+            {(isAdmin() || canApproveSalas()) && <NotificationsDropdown />}
 
             {/* Ações de Criação */}
             <DropdownMenu>
@@ -473,14 +485,18 @@ export const Dashboard = () => {
               <DropdownMenuContent align="end" className="z-50 bg-white min-w-[200px]">
                 <DropdownMenuLabel>Sistema</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowInteressadosModal(true)}>
-                  <Users className="h-4 w-4 mr-2" />
-                  Gerenciar Interessados
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleTiposClick}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Gerenciar Tipos
-                </DropdownMenuItem>
+                {canReadContratantes() && (
+                  <DropdownMenuItem onClick={() => setShowInteressadosModal(true)}>
+                    <Users className="h-4 w-4 mr-2" />
+                    Gerenciar Contratantes
+                  </DropdownMenuItem>
+                )}
+                {canManageTipos && (
+                  <DropdownMenuItem onClick={handleTiposClick}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Gerenciar Tipos
+                  </DropdownMenuItem>
+                )}
                 {isAdmin() && <DropdownMenuItem onClick={() => setShowCadastroUsuarioModal(true)}>
                   <Users className="h-4 w-4 mr-2" />
                   Cadastrar Usuário
@@ -515,7 +531,7 @@ export const Dashboard = () => {
 
           {/* Mobile Actions */}
           <div className="flex md:hidden items-center gap-2">
-            {isAdmin() && <NotificationsDropdown />}
+            {(isAdmin() || canApproveSalas()) && <NotificationsDropdown />}
             <MobileActions />
           </div>
         </div>
@@ -598,15 +614,15 @@ export const Dashboard = () => {
                   <span className="text-xs sm:text-sm">Lista</span>
                   {!canReadEventos() && <Lock className="h-3 w-3 ml-1" />}
                 </TabsTrigger>
-                <TabsTrigger value="reservas" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-initial" disabled={!canReadEventos()}>
-                  <FileText className="h-4 w-4 mr-1 sm:mr-2" />
-                  <span className="text-xs sm:text-sm">Reservas</span>
-                  {!canReadEventos() && <Lock className="h-3 w-3 ml-1" />}
-                </TabsTrigger>
                 <TabsTrigger value="inscricoes" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-initial" disabled={!canReadEventos()}>
                   <Users className="h-4 w-4 mr-1 sm:mr-2" />
                   <span className="text-xs sm:text-sm">Inscrições</span>
                   {!canReadEventos() && <Lock className="h-3 w-3 ml-1" />}
+                </TabsTrigger>
+                <TabsTrigger value="reservas" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex-1 sm:flex-initial" disabled={!canReadReservas()}>
+                  <FileText className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="text-xs sm:text-sm">Contratos</span>
+                  {!canReadReservas() && <Lock className="h-3 w-3 ml-1" />}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -633,7 +649,7 @@ export const Dashboard = () => {
             </TabsContent>
 
             <TabsContent value="reservas" className="p-3 sm:p-6 m-0">
-              {!canReadEventos() ? <div className="flex items-center justify-center h-64">
+              {!canReadReservas() ? <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <Lock className="h-16 w-16 mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">Acesso Restrito</h3>

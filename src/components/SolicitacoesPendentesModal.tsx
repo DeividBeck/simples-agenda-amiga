@@ -7,6 +7,7 @@ import { Check, X, Calendar, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EStatusReserva } from '@/types/api';
+import { useClaims } from '@/hooks/useClaims';
 
 interface SolicitacoesPendentesModalProps {
     isOpen: boolean;
@@ -17,6 +18,7 @@ export const SolicitacoesPendentesModal = ({ isOpen, onClose }: SolicitacoesPend
     const { data: salasPendentes, isLoading } = useSalasPendentes();
     const updateStatus = useUpdateSalaStatus();
     const { toast } = useToast();
+    const { canApproveSalas } = useClaims();
 
     const handleUpdateStatus = async (id: number, status: EStatusReserva, descricao: string) => {
         try {
@@ -115,7 +117,7 @@ export const SolicitacoesPendentesModal = ({ isOpen, onClose }: SolicitacoesPend
                                                 size="sm"
                                                 variant="default"
                                                 onClick={() => handleUpdateStatus(sala.id, EStatusReserva.Aprovado, sala.descricao || '')}
-                                                disabled={updateStatus.isPending}
+                                                disabled={updateStatus.isPending || !canApproveSalas()}
                                                 className="bg-green-600 hover:bg-green-700"
                                             >
                                                 <Check className="h-4 w-4 mr-1" />
@@ -125,7 +127,7 @@ export const SolicitacoesPendentesModal = ({ isOpen, onClose }: SolicitacoesPend
                                                 size="sm"
                                                 variant="destructive"
                                                 onClick={() => handleUpdateStatus(sala.id, EStatusReserva.Rejeitado, sala.descricao || '')}
-                                                disabled={updateStatus.isPending}
+                                                disabled={updateStatus.isPending || !canApproveSalas()}
                                             >
                                                 <X className="h-4 w-4 mr-1" />
                                                 Rejeitar

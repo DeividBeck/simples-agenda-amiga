@@ -9,7 +9,7 @@ import { fetchApi } from './baseApi';
 export const useTiposEventos = () => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
   const { canReadTiposEventos } = useClaims();
-  
+
   return useQuery({
     queryKey: ['tiposEventos', filialSelecionada],
     queryFn: () => fetchApi(`/${filialSelecionada}/TiposEventos`, token) as Promise<TipoEvento[]>,
@@ -21,7 +21,7 @@ export const useTiposEventos = () => {
 export const useTiposDeSalas = () => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
   const { canReadTiposSalas } = useClaims();
-  
+
   return useQuery({
     queryKey: ['tiposDeSalas', filialSelecionada],
     queryFn: () => fetchApi(`/${filialSelecionada}/TiposDeSalas`, token) as Promise<TipoDeSala[]>,
@@ -33,13 +33,9 @@ export const useTiposDeSalas = () => {
 export const useCreateTipoEvento = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canCreateTiposEventos } = useClaims();
-  
+
   return useMutation({
     mutationFn: (data: Omit<TipoEvento, 'id'>) => {
-      if (!canCreateTiposEventos()) {
-        throw new Error('Você não tem permissão para criar tipos de eventos');
-      }
       return fetchApi(`/${filialSelecionada}/TiposEventos`, token, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -55,13 +51,9 @@ export const useCreateTipoEvento = () => {
 export const useCreateTipoDeSala = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canCreateTiposSalas } = useClaims();
-  
+
   return useMutation({
     mutationFn: (data: Omit<TipoDeSala, 'id' | 'dataCriacao' | 'dataAtualizacao'>) => {
-      if (!canCreateTiposSalas()) {
-        throw new Error('Você não tem permissão para criar tipos de salas');
-      }
       return fetchApi(`/${filialSelecionada}/TiposDeSalas`, token, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -77,13 +69,9 @@ export const useCreateTipoDeSala = () => {
 export const useUpdateTipoEvento = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canEditTiposEventos } = useClaims();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: TipoEvento }) => {
-      if (!canEditTiposEventos()) {
-        throw new Error('Você não tem permissão para editar tipos de eventos');
-      }
       return fetchApi(`/${filialSelecionada}/TiposEventos/${id}`, token, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -99,13 +87,9 @@ export const useUpdateTipoEvento = () => {
 export const useDeleteTipoEvento = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canDeleteTiposEventos } = useClaims();
-  
+
   return useMutation({
     mutationFn: (id: number) => {
-      if (!canDeleteTiposEventos()) {
-        throw new Error('Você não tem permissão para excluir tipos de eventos');
-      }
       return fetchApi(`/${filialSelecionada}/TiposEventos/${id}`, token, {
         method: 'DELETE',
       });
@@ -118,13 +102,9 @@ export const useDeleteTipoEvento = () => {
 export const useUpdateTipoDeSala = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canEditTiposSalas } = useClaims();
-  
+
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: TipoDeSala }) => {
-      if (!canEditTiposSalas()) {
-        throw new Error('Você não tem permissão para editar tipos de salas');
-      }
       return fetchApi(`/${filialSelecionada}/TiposDeSalas/${id}`, token, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -140,13 +120,9 @@ export const useUpdateTipoDeSala = () => {
 export const useDeleteTipoDeSala = () => {
   const queryClient = useQueryClient();
   const { token, filialSelecionada } = useAuth();
-  const { canDeleteTiposSalas } = useClaims();
-  
+
   return useMutation({
     mutationFn: (id: number) => {
-      if (!canDeleteTiposSalas()) {
-        throw new Error('Você não tem permissão para excluir tipos de salas');
-      }
       return fetchApi(`/${filialSelecionada}/TiposDeSalas/${id}`, token, {
         method: 'DELETE',
       });

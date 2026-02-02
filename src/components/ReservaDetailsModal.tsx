@@ -24,6 +24,7 @@ interface ReservaDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   reserva: Reserva | null;
+  canEdit?: boolean;
 }
 
 const formSchema = z.object({
@@ -71,6 +72,7 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
   isOpen,
   onClose,
   reserva,
+  canEdit = false,
 }) => {
   const { toast } = useToast();
   const updateReserva = useUpdateReserva();
@@ -261,24 +263,87 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
                 <CardTitle className="text-sm flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
                   Dados do Contrato
-                  <Badge variant="secondary" className="ml-auto text-xs">Editável</Badge>
+                  <Badge variant="secondary" className="ml-auto text-xs">{canEdit ? 'Editável' : 'Somente Leitura'}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <fieldset disabled={!canEdit} className="space-y-4 group-disabled:opacity-50">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="valorTotal"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor Total (R$)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="0,00"
+                                  {...field}
+                                  value={field.value ?? ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="valorSinal"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor do Sinal (R$)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="0,00"
+                                  {...field}
+                                  value={field.value ?? ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="quantidadeParticipantes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                Participantes
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  {...field}
+                                  value={field.value ?? ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
                       <FormField
                         control={form.control}
-                        name="valorTotal"
+                        name="observacoes"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Valor Total (R$)</FormLabel>
+                            <FormLabel>Observações</FormLabel>
                             <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0,00"
+                              <Textarea
+                                placeholder="Observações adicionais sobre a reserva..."
+                                className="min-h-[80px]"
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -287,73 +352,12 @@ export const ReservaDetailsModal: React.FC<ReservaDetailsModalProps> = ({
                           </FormItem>
                         )}
                       />
-
-                      <FormField
-                        control={form.control}
-                        name="valorSinal"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Valor do Sinal (R$)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0,00"
-                                {...field}
-                                value={field.value ?? ''}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="quantidadeParticipantes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              Participantes
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="0"
-                                {...field}
-                                value={field.value ?? ''}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="observacoes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Observações</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Observações adicionais sobre a reserva..."
-                              className="min-h-[80px]"
-                              {...field}
-                              value={field.value ?? ''}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    </fieldset>
 
                     <div className="flex items-center justify-between pt-4">
                       <Button
                         type="submit"
-                        disabled={updateReserva.isPending}
+                        disabled={updateReserva.isPending || !canEdit}
                       >
                         {updateReserva.isPending ? (
                           <Loader className="h-4 w-4 mr-2 animate-spin" />
