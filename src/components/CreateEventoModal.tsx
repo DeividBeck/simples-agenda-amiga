@@ -539,6 +539,30 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
+                name="nivelCompartilhamento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium mb-2">
+                      Nível de Compartilhamento
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o nível" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">Local</SelectItem>
+                        <SelectItem value="1">Entre Paróquias</SelectItem>
+                        <SelectItem value="2">Diocese</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="tipoEventoId"
                 render={({ field }) => (
                   <FormItem>
@@ -566,31 +590,6 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                             </div>
                           </SelectItem>
                         ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="nivelCompartilhamento"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium mb-2">
-                      Nível de Compartilhamento
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o nível" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="0">Local</SelectItem>
-                        <SelectItem value="1">Entre Paróquias</SelectItem>
-                        <SelectItem value="2">Diocese</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

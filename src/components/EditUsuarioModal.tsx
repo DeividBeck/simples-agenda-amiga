@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Usuario } from '@/hooks/api/useUsuarios';
 import { useUpdateUsuario } from '@/hooks/api/useUsuarios';
 import { toast } from 'sonner';
@@ -17,39 +17,58 @@ interface EditUsuarioModalProps {
   usuario: Usuario | null;
 }
 
-// Claims disponíveis do módulo Calendario
-const CALENDARIO_CLAIMS = [
-  { value: 'Admin', label: 'Administrador', description: 'Acesso total ao sistema' },
-  { value: 'EventoCriar', label: 'Criar Eventos', description: 'Pode criar novos eventos' },
-  { value: 'EventoLer', label: 'Ver Eventos', description: 'Pode visualizar eventos' },
-  { value: 'EventoEditar', label: 'Editar Eventos', description: 'Pode editar eventos existentes' },
-  { value: 'EventoExcluir', label: 'Excluir Eventos', description: 'Pode excluir eventos' },
-  { value: 'TipoEventoCriar', label: 'Criar Tipos de Evento', description: 'Pode criar tipos de evento' },
-  { value: 'TipoEventoLer', label: 'Ver Tipos de Evento', description: 'Pode visualizar tipos de evento' },
-  { value: 'TipoEventoEditar', label: 'Editar Tipos de Evento', description: 'Pode editar tipos de evento' },
-  { value: 'TipoEventoExcluir', label: 'Excluir Tipos de Evento', description: 'Pode excluir tipos de evento' },
-  { value: 'SalaCriar', label: 'Criar Reservas de Sala', description: 'Pode criar reservas de sala' },
-  { value: 'SalaLer', label: 'Ver Reservas de Sala', description: 'Pode visualizar reservas de sala' },
-  { value: 'SalaEditar', label: 'Editar Reservas de Sala', description: 'Pode editar reservas de sala' },
-  { value: 'SalaExcluir', label: 'Excluir Reservas de Sala', description: 'Pode excluir reservas de sala' },
-  { value: 'TipoSalaCriar', label: 'Criar Tipos de Sala', description: 'Pode criar tipos de sala' },
-  { value: 'TipoSalaLer', label: 'Ver Tipos de Sala', description: 'Pode visualizar tipos de sala' },
-  { value: 'TipoSalaEditar', label: 'Editar Tipos de Sala', description: 'Pode editar tipos de sala' },
-  { value: 'TipoSalaExcluir', label: 'Excluir Tipos de Sala', description: 'Pode excluir tipos de sala' },
-  { value: 'ReservaLer', label: 'Ver Reservas', description: 'Pode visualizar reservas' },
-  { value: 'ReservaEditar', label: 'Editar Reservas', description: 'Pode editar reservas' },
-  { value: 'InteressadoCriar', label: 'Criar Contratantes', description: 'Pode criar contratantes' },
-  { value: 'InteressadoLer', label: 'Ver Contratantes', description: 'Pode visualizar contratantes' },
-  { value: 'InteressadoEditar', label: 'Editar Contratantes', description: 'Pode editar contratantes' },
-  { value: 'InteressadoExcluir', label: 'Excluir Contratantes', description: 'Pode excluir contratantes' },
-  { value: 'InscricaoLer', label: 'Ver Inscrições', description: 'Pode visualizar inscrições' },
-  { value: 'InscricaoExcluir', label: 'Excluir Inscrições', description: 'Pode excluir inscrições' },
+const AVAILABLE_CLAIMS = [
+  // Eventos
+  { id: 'EventoLer', label: 'Visualizar Eventos', category: 'Eventos' },
+  { id: 'EventoCriar', label: 'Criar Eventos', category: 'Eventos' },
+  { id: 'EventoEditar', label: 'Editar Eventos', category: 'Eventos' },
+  { id: 'EventoExcluir', label: 'Excluir Eventos', category: 'Eventos' },
+
+  // Tipos de Eventos
+  { id: 'TipoEventoLer', label: 'Visualizar Tipos de Eventos', category: 'Tipos de Eventos' },
+  { id: 'TipoEventoCriar', label: 'Criar Tipos de Eventos', category: 'Tipos de Eventos' },
+  { id: 'TipoEventoEditar', label: 'Editar Tipos de Eventos', category: 'Tipos de Eventos' },
+  { id: 'TipoEventoExcluir', label: 'Excluir Tipos de Eventos', category: 'Tipos de Eventos' },
+
+  // Salas
+  { id: 'SalaLer', label: 'Visualizar Salas', category: 'Salas' },
+  { id: 'SalaCriar', label: 'Criar Salas', category: 'Salas' },
+  { id: 'SalaEditar', label: 'Editar Salas', category: 'Salas' },
+  { id: 'SalaExcluir', label: 'Excluir Salas', category: 'Salas' },
+  { id: 'SalaAprovar', label: 'Aprovar Salas', category: 'Salas' },
+
+  // Tipos de Salas
+  { id: 'TipoSalaLer', label: 'Visualizar Tipos de Salas', category: 'Tipos de Salas' },
+  { id: 'TipoSalaCriar', label: 'Criar Tipos de Salas', category: 'Tipos de Salas' },
+  { id: 'TipoSalaEditar', label: 'Editar Tipos de Salas', category: 'Tipos de Salas' },
+  { id: 'TipoSalaExcluir', label: 'Excluir Tipos de Salas', category: 'Tipos de Salas' },
+
+  // // Contratantes
+  // { id: 'ContratanteLer', label: 'Visualizar Contratantes', category: 'Contratantes' },
+  // { id: 'ContratanteCriar', label: 'Criar Contratantes', category: 'Contratantes' },
+  // { id: 'ContratanteEditar', label: 'Editar Contratantes', category: 'Contratantes' },
+  // { id: 'ContratanteExcluir', label: 'Excluir Contratantes', category: 'Contratantes' },
+
+  // // Reservas
+  // { id: 'ReservaLer', label: 'Visualizar Reservas', category: 'Reservas' },
+  // { id: 'ReservaCriar', label: 'Criar Reservas', category: 'Reservas' },
+  // { id: 'ReservaEditar', label: 'Editar Reservas', category: 'Reservas' },
+  // { id: 'ReservaExcluir', label: 'Excluir Reservas', category: 'Reservas' },
 ];
+
+// Agrupar claims por categoria
+const CLAIMS_BY_CATEGORY = AVAILABLE_CLAIMS.reduce((acc, claim) => {
+  if (!acc[claim.category]) {
+    acc[claim.category] = [];
+  }
+  acc[claim.category].push(claim);
+  return acc;
+}, {} as Record<string, typeof AVAILABLE_CLAIMS>);
 
 export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onClose, usuario }) => {
   const [nome, setNome] = useState('');
   const [selectedClaims, setSelectedClaims] = useState<string[]>([]);
-  
+
   const updateUsuario = useUpdateUsuario();
 
   // Preenche os dados ao abrir o modal
@@ -65,15 +84,15 @@ export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onCl
   }, [usuario]);
 
   const handleClaimToggle = (claim: string) => {
-    setSelectedClaims(prev => 
-      prev.includes(claim) 
+    setSelectedClaims(prev =>
+      prev.includes(claim)
         ? prev.filter(c => c !== claim)
         : [...prev, claim]
     );
   };
 
   const handleSelectAll = () => {
-    const allClaims = CALENDARIO_CLAIMS.map(c => c.value);
+    const allClaims = AVAILABLE_CLAIMS.map(c => c.id);
     setSelectedClaims(allClaims);
   };
 
@@ -111,7 +130,7 @@ export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-4xl w-[95vw] max-w-[95vw] max-h-[90vh] overflow-hidden flex flex-col mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -119,7 +138,7 @@ export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onCl
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-hidden">
+        <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
           {/* Email (readonly) */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -145,7 +164,7 @@ export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onCl
           <Separator />
 
           {/* Permissões */}
-          <div className="space-y-2 flex-1 overflow-hidden">
+          <div className="space-y-2 flex-1 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between">
               <Label>Permissões do Calendário</Label>
               <div className="flex gap-2">
@@ -167,34 +186,43 @@ export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onCl
                 </Button>
               </div>
             </div>
-            
-            <ScrollArea className="h-[300px] border rounded-md p-3">
-              <div className="space-y-3">
-                {CALENDARIO_CLAIMS.map((claim) => (
-                  <div 
-                    key={claim.value} 
-                    className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors"
-                  >
-                    <Checkbox
-                      id={claim.value}
-                      checked={selectedClaims.includes(claim.value)}
-                      onCheckedChange={() => handleClaimToggle(claim.value)}
-                    />
-                    <div className="grid gap-0.5 leading-none">
-                      <label
-                        htmlFor={claim.value}
-                        className="text-sm font-medium cursor-pointer"
-                      >
-                        {claim.label}
-                      </label>
-                      <p className="text-xs text-muted-foreground">
-                        {claim.description}
-                      </p>
-                    </div>
-                  </div>
+
+            <div className="flex-1 overflow-y-auto min-h-0 border rounded-md p-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 pb-4">
+                {Object.entries(CLAIMS_BY_CATEGORY).map(([category, claims]) => (
+                  <Card key={category} className="h-fit">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm">{category}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-2 sm:space-y-3">
+                        {claims.map((claim) => (
+                          <div key={claim.id} className="flex items-start space-x-2">
+                            <Checkbox
+                              id={claim.id}
+                              checked={selectedClaims.includes(claim.id)}
+                              onCheckedChange={() => handleClaimToggle(claim.id)}
+                              className="mt-0.5 flex-shrink-0"
+                            />
+                            <div className="grid gap-0.5 leading-none">
+                              <label
+                                htmlFor={claim.id}
+                                className="text-sm font-medium cursor-pointer"
+                              >
+                                {claim.label}
+                              </label>
+                              <p className="text-xs text-muted-foreground">
+                                {claim.category}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
@@ -202,8 +230,8 @@ export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onCl
           <Button variant="outline" onClick={handleClose}>
             Cancelar
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={updateUsuario.isPending || !nome.trim()}
           >
             {updateUsuario.isPending ? (
