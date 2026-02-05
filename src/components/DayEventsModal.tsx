@@ -126,7 +126,7 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
                   <div className="flex gap-3">
                     <div
                       className="w-1 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: evento.tipoEvento.cor }}
+                      style={{ backgroundColor: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280' }}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
@@ -149,12 +149,12 @@ export const DayEventsModal: React.FC<DayEventsModalProps> = ({
                           variant="secondary"
                           className="text-xs px-1.5 py-0"
                           style={{
-                            backgroundColor: `${evento.tipoEvento.cor}20`,
-                            color: evento.tipoEvento.cor,
-                            borderColor: evento.tipoEvento.cor
+                            backgroundColor: `${evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280'}20`,
+                            color: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280',
+                            borderColor: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280'
                           }}
                         >
-                          {evento.tipoEvento.nome}
+                          {evento.tipoEvento?.nome || evento.tipoEventoGlobal?.nome || 'Evento'}
                         </Badge>
 
                         {evento.sala && (

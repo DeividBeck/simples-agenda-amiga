@@ -143,13 +143,16 @@ export const ViewEventoModal: React.FC<ViewEventoModalProps> = ({
             <Badge
               variant="outline"
               className="flex items-center gap-1"
-              style={{ borderColor: evento.tipoEvento.cor, color: evento.tipoEvento.cor }}
+              style={{ 
+                borderColor: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280', 
+                color: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280' 
+              }}
             >
               <div
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: evento.tipoEvento.cor }}
+                style={{ backgroundColor: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280' }}
               />
-              {evento.tipoEvento.nome}
+              {evento.tipoEvento?.nome || evento.tipoEventoGlobal?.nome || 'Evento'}
             </Badge>
             {evento.inscricaoAtiva && (
               <Badge variant="secondary" className="flex items-center gap-1">

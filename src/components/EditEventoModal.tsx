@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useUpdateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useInteressado } from '@/hooks/useApi';
+import { useUpdateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useInteressado, useTiposEventoGlobal } from '@/hooks/useApi';
 import { useToast } from '@/hooks/use-toast';
 import { Evento, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado } from '@/types/api';
 import { cn } from '@/lib/utils';
@@ -154,12 +154,29 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
   const hasOnlineRegistration = evento?.inscricaoAtiva && evento?.slug;
 
   const watchTipoEventoId = form.watch('tipoEventoId');
+  const watchNivelCompartilhamento = form.watch('nivelCompartilhamento');
+
+  // Buscar tipos de evento globais apenas quando nível = Diocese (2)
+  const isDiocese = watchNivelCompartilhamento === '2';
+  const { data: tiposEventoGlobal } = useTiposEventoGlobal(isDiocese);
+
+  // Lista de tipos a ser usada dependendo do nível de compartilhamento
+  const tiposEventosAtivos = useMemo(() => {
+    if (isDiocese) {
+      return tiposEventoGlobal?.filter(t => t.disponivel) || [];
+    }
+    return tiposEventos || [];
+  }, [isDiocese, tiposEventoGlobal, tiposEventos]);
 
   // Verificar se o tipo de evento selecionado tem categoria de contrato
   const tipoEventoSelecionado = useMemo(() => {
-    if (!watchTipoEventoId || !tiposEventos) return null;
-    return tiposEventos.find(t => t.id.toString() === watchTipoEventoId);
-  }, [watchTipoEventoId, tiposEventos]);
+    if (!watchTipoEventoId) return null;
+    if (isDiocese) {
+      // Tipos globais não têm categoriaContrato, então retorna null
+      return null;
+    }
+    return tiposEventos?.find(t => t.id.toString() === watchTipoEventoId) || null;
+  }, [watchTipoEventoId, tiposEventos, isDiocese]);
 
   const showInteressadoSection = tipoEventoSelecionado &&
     tipoEventoSelecionado.categoriaContrato !== ETipoContrato.Nenhum;
@@ -189,13 +206,20 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         ? evento.eventoPai.fimRecorrencia ? new Date(evento.eventoPai.fimRecorrencia) : undefined
         : evento.fimRecorrencia ? new Date(evento.fimRecorrencia) : undefined;
 
+      // Determinar o tipo de evento (local ou global)
+      const tipoEventoIdValue = evento.tipoEvento?.id != null 
+        ? evento.tipoEvento.id.toString() 
+        : evento.tipoEventoGlobal?.id != null 
+          ? evento.tipoEventoGlobal.id.toString() 
+          : (evento.tipoEventoId != null ? evento.tipoEventoId.toString() : (evento.tipoEventoGlobalId != null ? evento.tipoEventoGlobalId.toString() : ''));
+
       form.reset({
         titulo: evento.titulo || '',
         descricao: evento.descricao || '',
         dataInicio: dataInicio,
         dataFim: dataFim,
         allDay: evento.allDay ?? false,
-        tipoEventoId: evento.tipoEvento?.id != null ? evento.tipoEvento.id.toString() : (evento.tipoEventoId != null ? evento.tipoEventoId.toString() : ''),
+        tipoEventoId: tipoEventoIdValue,
         inscricaoAtiva: evento.inscricaoAtiva ?? false,
         nomeFormulario: evento.nomeFormulario != null ? evento.nomeFormulario.toString() : 'generico',
         nivelCompartilhamento: evento.nivelCompartilhamento != null ? evento.nivelCompartilhamento.toString() : '0',
@@ -360,6 +384,11 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         allDay: data.allDay,
       } : null;
 
+      // Determinar tipoEventoId ou tipoEventoGlobalId baseado no nível
+      const nivelCompartilhamento = parseInt(data.nivelCompartilhamento);
+      const tipoEventoIdValue = parseInt(data.tipoEventoId);
+      const isDioceseUpdate = nivelCompartilhamento === 2;
+
       const eventoAtualizado = {
         id: evento.id,
         filialId: evento.filialId,
@@ -369,7 +398,9 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
         dataInicio: dataInicio.toISOString(),
         dataFim: dataFim.toISOString(),
         allDay: data.allDay,
-        tipoEventoId: parseInt(data.tipoEventoId),
+        tipoEventoId: isDioceseUpdate ? null : tipoEventoIdValue,
+        tipoEventoGlobalId: isDioceseUpdate ? tipoEventoIdValue : null,
+        nivelCompartilhamento: nivelCompartilhamento,
         inscricaoAtiva: hasOnlineRegistration ? evento.inscricaoAtiva : data.inscricaoAtiva,
         nomeFormulario: hasOnlineRegistration ? evento.nomeFormulario : (data.nomeFormulario && data.nomeFormulario !== 'generico' ? parseInt(data.nomeFormulario) as ENomeFormulario : null),
         slug: evento.slug,
@@ -469,7 +500,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {tiposEventos?.map(tipo => (
+                        {tiposEventosAtivos.map(tipo => (
                           <SelectItem key={tipo.id} value={tipo.id.toString()}>
                             <div className="flex items-center gap-2">
                               <div
@@ -477,7 +508,7 @@ export const EditEventoModal: React.FC<EditEventoModalProps> = ({ isOpen, onClos
                                 style={{ backgroundColor: tipo.cor }}
                               />
                               {tipo.nome}
-                              {tipo.categoriaContrato !== ETipoContrato.Nenhum && (
+                              {'categoriaContrato' in tipo && tipo.categoriaContrato !== ETipoContrato.Nenhum && (
                                 <Badge variant="outline" className="ml-1 text-xs">
                                   {getCategoriaLabel(tipo.categoriaContrato)}
                                 </Badge>
