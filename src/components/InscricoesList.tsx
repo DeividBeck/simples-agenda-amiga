@@ -119,7 +119,7 @@ export const InscricoesList: React.FC<InscricoesListProps> = ({ eventos }) => {
                       <div className="flex items-center gap-2">
                         <div 
                           className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: evento.tipoEvento.cor }}
+                          style={{ backgroundColor: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280' }}
                         />
                         {evento.titulo}
                         <Badge variant="secondary" className="ml-2">

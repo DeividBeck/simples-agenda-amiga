@@ -5,13 +5,17 @@ import { useAuth } from '../useAuth';
 import { useClaims } from '../useClaims';
 import { fetchApi } from './baseApi';
 
-// Hook para buscar eventos com filtro por nível de compartilhamento
-export const useEventos = (nivelCompartilhamento?: ENivelCompartilhamento, enabled: boolean = true) => {
+// Hook para buscar eventos com filtro por níveis de compartilhamento (suporta array)
+export const useEventos = (niveis?: ENivelCompartilhamento[], enabled: boolean = true) => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
-  const queryParams = nivelCompartilhamento !== undefined ? `?nivelCompartilhamento=${nivelCompartilhamento}` : '';
+  
+  // Construir query string para múltiplos níveis: ?niveis=Local&niveis=Diocese
+  const queryParams = niveis && niveis.length > 0 
+    ? `?${niveis.map(n => `niveis=${ENivelCompartilhamento[n]}`).join('&')}`
+    : '';
 
   return useQuery({
-    queryKey: ['eventos', filialSelecionada, nivelCompartilhamento],
+    queryKey: ['eventos', filialSelecionada, niveis],
     queryFn: () => fetchApi(`/${filialSelecionada}/Eventos${queryParams}`, token) as Promise<Evento[]>,
     enabled: isAuthenticated && enabled,
   });

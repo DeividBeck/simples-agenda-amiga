@@ -142,6 +142,14 @@ export enum EExclusaoRecorrencia {
   Todos = 2
 }
 
+export interface TipoEventoGlobal {
+  id: number;
+  empresaId: number;
+  nome: string;
+  cor: string;
+  disponivel: boolean;
+}
+
 export interface Evento {
   id: number;
   titulo: string;
@@ -149,12 +157,14 @@ export interface Evento {
   dataInicio: string;
   dataFim: string;
   allDay: boolean;
-  tipoEventoId: number;
+  tipoEventoId: number | null;
+  tipoEventoGlobalId?: number | null;
   inscricaoAtiva: boolean;
   nomeFormulario: ENomeFormulario | null;
   slug: string | null;
   nivelCompartilhamento: ENivelCompartilhamento;
-  tipoEvento: TipoEvento;
+  tipoEvento: TipoEvento | null;
+  tipoEventoGlobal?: TipoEventoGlobal | null;
   filialId: number;
   filial: Filial | null;
   recorrencia?: ERecorrencia;

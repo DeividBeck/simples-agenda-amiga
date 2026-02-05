@@ -205,7 +205,7 @@ const EventosPublicos = () => {
                           </div>
                           <div className="flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
-                            {evento.tipoEvento.nome}
+                            {evento.tipoEvento?.nome || evento.tipoEventoGlobal?.nome || 'Evento'}
                           </div>
                         </div>
                       </div>

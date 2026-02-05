@@ -64,10 +64,21 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
     return true;
   });
 
+  // Helper para obter cor do tipo de evento (local ou global)
+  const getEventoCor = (evento: Evento): string => {
+    return evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280';
+  };
+
+  // Helper para obter nome do tipo de evento (local ou global)
+  const getEventoTipoNome = (evento: Evento): string => {
+    return evento.tipoEvento?.nome || evento.tipoEventoGlobal?.nome || 'Evento';
+  };
+
   // Converter eventos para o formato do FullCalendar
   const eventosCalendar = eventosFiltrados.map(evento => {
     const isAllDay = evento.allDay;
     let endDate = evento.dataFim;
+    const eventoCor = getEventoCor(evento);
 
     // Para eventos de dia inteiro, adicionar um dia à data de fim para o FullCalendar mostrar corretamente
     if (isAllDay) {
@@ -89,9 +100,9 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
       start: evento.dataInicio,
       end: endDate,
       allDay: isAllDay,
-      backgroundColor: isAllDay ? evento.tipoEvento.cor : 'transparent',
-      borderColor: evento.tipoEvento.cor,
-      textColor: isAllDay ? '#ffffff' : evento.tipoEvento.cor,
+      backgroundColor: isAllDay ? eventoCor : 'transparent',
+      borderColor: eventoCor,
+      textColor: isAllDay ? '#ffffff' : eventoCor,
       classNames: [
         'fc-event-paroquial',
         isAllDay ? 'fc-event-all-day' : 'fc-event-timed'
@@ -101,13 +112,14 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
         type: 'evento',
         evento: evento,
         descricao: evento.descricao,
-        tipoEvento: evento.tipoEvento.nome,
+        tipoEvento: getEventoTipoNome(evento),
         inscricaoAtiva: evento.inscricaoAtiva,
         nivelCompartilhamento: evento.nivelCompartilhamento,
         slug: evento.slug,
         isAllDay: isAllDay,
         temSala: temSala,
-        nomeSala: tipoSala?.nome
+        nomeSala: tipoSala?.nome,
+        eventoCor: eventoCor
       }
     };
   });
@@ -325,12 +337,13 @@ export const FullCalendarView: React.FC<FullCalendarViewProps> = ({
           </div>
         );
       } else {
+        const eventoCor = eventInfo.event.extendedProps.eventoCor;
         return (
           <div className="fc-event-main-frame p-1 overflow-hidden" title={eventInfo.event.title}>
             <div className="flex items-center gap-1 overflow-hidden max-w-full">
               <div
                 className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: evento.tipoEvento.cor }}
+                style={{ backgroundColor: eventoCor }}
               ></div>
               <span className="font-medium text-xs flex-shrink-0">{eventInfo.timeText}</span>
               <span className="text-xs truncate block">{eventInfo.event.title}</span>

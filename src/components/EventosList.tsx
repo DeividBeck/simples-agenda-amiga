@@ -295,13 +295,13 @@ export const EventosList: React.FC<EventosListProps> = ({ eventos, isLoading, on
                     <div className="flex flex-col items-end gap-2">
                       <Badge
                         style={{
-                          backgroundColor: evento.tipoEvento.cor,
+                          backgroundColor: evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280',
                           color: '#fff'
                         }}
                         className="flex items-center gap-1"
                       >
                         <Tag className="h-3 w-3" />
-                        {evento.tipoEvento.nome}
+                        {evento.tipoEvento?.nome || evento.tipoEventoGlobal?.nome || 'Evento'}
                       </Badge>
 
                       <Badge

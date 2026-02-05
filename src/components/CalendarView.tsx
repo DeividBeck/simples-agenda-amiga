@@ -20,6 +20,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
   const monthEnd = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  // Helper para obter cor do tipo de evento (local ou global)
+  const getEventoCor = (evento: Evento): string => {
+    return evento.tipoEvento?.cor || evento.tipoEventoGlobal?.cor || '#6b7280';
+  };
+
+  // Helper para obter nome do tipo de evento (local ou global)
+  const getEventoTipoNome = (evento: Evento): string => {
+    return evento.tipoEvento?.nome || evento.tipoEventoGlobal?.nome || 'Evento';
+  };
+
   // Função para obter a cor do tipo de sala
   const getTipoDeSalaCor = (tipoDeSalaId: number): string => {
     const tipoSala = tiposDeSalas.find(tipo => tipo.id === tipoDeSalaId);
@@ -177,6 +187,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                     const isAllDay = evento.allDay;
                     const temSala = evento.sala?.id;
                     const tipoSala = temSala ? tiposDeSalas.find(ts => ts.id === evento.sala!.tipoDeSalaId) : null;
+                    const eventoCor = getEventoCor(evento);
 
                     const tituloCompleto = temSala
                       ? `${evento.titulo} ${tipoSala?.nome || 'Sala'}`
@@ -193,7 +204,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                           key={`evento-${evento.id}`}
                           className="text-xs p-1 rounded-sm cursor-pointer hover:shadow-sm transition-shadow"
                           style={{
-                            backgroundColor: evento.tipoEvento.cor,
+                            backgroundColor: eventoCor,
                             color: '#ffffff'
                           }}
                           title={tooltipText}
@@ -218,7 +229,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
                         >
                           <div
                             className="w-2 h-2 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: evento.tipoEvento.cor }}
+                            style={{ backgroundColor: eventoCor }}
                           ></div>
                           <span className="text-gray-600 text-xs">
                             {format(startDate, 'HH:mm')}
@@ -300,8 +311,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ eventos, salas = [],
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">Tipos de Eventos:</h4>
             <div className="flex flex-wrap gap-2">
-              {Array.from(new Set(eventos.map(e => e.tipoEvento)))
-                .filter((tipo, index, self) => self.findIndex(t => t.id === tipo.id) === index)
+              {eventos
+                .map(e => ({
+                  id: e.tipoEvento?.id || e.tipoEventoGlobal?.id || 0,
+                  nome: e.tipoEvento?.nome || e.tipoEventoGlobal?.nome || 'Evento',
+                  cor: e.tipoEvento?.cor || e.tipoEventoGlobal?.cor || '#6b7280'
+                }))
+                .filter((tipo, index, self) => tipo.id !== 0 && self.findIndex(t => t.id === tipo.id) === index)
                 .map(tipo => (
                   <Badge
                     key={tipo.id}
