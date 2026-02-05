@@ -214,7 +214,8 @@ export interface CreateEventoRequest {
   dataInicio: string;
   dataFim: string;
   allDay: boolean;
-  tipoEventoId: number;
+  tipoEventoId: number | null;
+  tipoEventoGlobalId?: number | null;
   inscricaoAtiva: boolean;
   nomeFormulario?: ENomeFormulario | null;
   nivelCompartilhamento: ENivelCompartilhamento;

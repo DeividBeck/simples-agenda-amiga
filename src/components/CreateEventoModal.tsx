@@ -17,7 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useUpdateReserva } from '@/hooks/useApi';
+import { useCreateEvento, useTiposEventos, useTiposDeSalas, useInteressados, useCreateInteressado, useUpdateReserva, useTiposEventoGlobal } from '@/hooks/useApi';
 import { CreateEventoRequest, ENivelCompartilhamento, ENomeFormulario, ERecorrencia, ETipoContrato, Interessado, Evento } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Clock, Users, FileText, Mail, Phone, Building2, DollarSign, Trash2, Plus } from 'lucide-react';
@@ -250,6 +250,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
   const watchRecorrencia = form.watch('recorrencia');
   const watchVincularSala = form.watch('vincularSala');
   const watchTipoEventoId = form.watch('tipoEventoId');
+  const watchNivelCompartilhamento = form.watch('nivelCompartilhamento');
 
   const watchValorTotal = form.watch('valorTotal');
   const watchValorSinal = form.watch('valorSinal');
@@ -261,11 +262,32 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
     }
   }, [watchValorTotal, watchValorSinal]);
 
+  // Buscar tipos de evento globais apenas quando nível = Diocese (2)
+  const isDiocese = watchNivelCompartilhamento === '2';
+  const { data: tiposEventoGlobal, isLoading: loadingTiposGlobal } = useTiposEventoGlobal(isDiocese);
+
+  // Lista de tipos a ser usada dependendo do nível de compartilhamento
+  const tiposEventosAtivos = useMemo(() => {
+    if (isDiocese) {
+      return tiposEventoGlobal?.filter(t => t.disponivel) || [];
+    }
+    return tiposEventos || [];
+  }, [isDiocese, tiposEventoGlobal, tiposEventos]);
+
+  // Limpar tipo de evento quando mudar o nível de compartilhamento
+  useEffect(() => {
+    form.setValue('tipoEventoId', '');
+  }, [watchNivelCompartilhamento, form]);
+
   // Verificar se o tipo de evento selecionado tem categoria de contrato
   const tipoEventoSelecionado = useMemo(() => {
-    if (!watchTipoEventoId || !tiposEventos) return null;
-    return tiposEventos.find(t => t.id.toString() === watchTipoEventoId);
-  }, [watchTipoEventoId, tiposEventos]);
+    if (!watchTipoEventoId) return null;
+    if (isDiocese) {
+      // Tipos globais não têm categoriaContrato, então retorna null
+      return null;
+    }
+    return tiposEventos?.find(t => t.id.toString() === watchTipoEventoId) || null;
+  }, [watchTipoEventoId, tiposEventos, isDiocese]);
 
   const showInteressadoSection = tipoEventoSelecionado &&
     tipoEventoSelecionado.categoriaContrato !== ETipoContrato.Nenhum;
@@ -410,13 +432,16 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
       }
     }
 
+    const tipoEventoIdValue = values.tipoEventoId ? parseInt(values.tipoEventoId) : null;
+    
     const data: CreateEventoRequest = {
       titulo: values.titulo,
       descricao: values.descricao,
       dataInicio: dataInicio.toISOString(),
       dataFim: dataFim.toISOString(),
       allDay: values.allDay,
-      tipoEventoId: parseInt(values.tipoEventoId),
+      tipoEventoId: isDiocese ? null : tipoEventoIdValue,
+      tipoEventoGlobalId: isDiocese ? tipoEventoIdValue : null,
       inscricaoAtiva: values.inscricaoAtiva,
       nomeFormulario: values.nomeFormulario && values.nomeFormulario !== 'generico' ? parseInt(values.nomeFormulario) as ENomeFormulario : null,
       nivelCompartilhamento: parseInt(values.nivelCompartilhamento) as ENivelCompartilhamento,
@@ -567,29 +592,58 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo de Evento *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={loadingTipos || loadingTiposGlobal}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
+                          <SelectValue placeholder={
+                            (loadingTipos || loadingTiposGlobal) 
+                              ? "Carregando..." 
+                              : "Selecione o tipo"
+                          } />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {tiposEventos?.map(tipo => (
-                          <SelectItem key={tipo.id} value={tipo.id.toString()}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: tipo.cor }}
-                              />
-                              {tipo.nome}
-                              {tipo.categoriaContrato !== ETipoContrato.Nenhum && (
-                                <Badge variant="outline" className="ml-1 text-xs">
-                                  {getCategoriaLabel(tipo.categoriaContrato)}
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {isDiocese ? (
+                          // Tipos de evento globais (Diocese)
+                          tiposEventoGlobal?.filter(t => t.disponivel).map(tipo => (
+                            <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: tipo.cor }}
+                                />
+                                {tipo.nome}
+                                {tipo.empresa && (
+                                  <Badge variant="outline" className="ml-1 text-xs">
+                                    {tipo.empresa.name}
+                                  </Badge>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          // Tipos de evento locais
+                          tiposEventos?.map(tipo => (
+                            <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: tipo.cor }}
+                                />
+                                {tipo.nome}
+                                {tipo.categoriaContrato !== ETipoContrato.Nenhum && (
+                                  <Badge variant="outline" className="ml-1 text-xs">
+                                    {getCategoriaLabel(tipo.categoriaContrato)}
+                                  </Badge>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
