@@ -16,6 +16,8 @@ interface Filial {
   id: number;
   nome: string;
   cnpj: string;
+  empresaId: number;
+  empresaName: string;
 }
 
 export const useAuth = () => {
@@ -60,22 +62,44 @@ export const useAuth = () => {
         setToken(authToken);
         setTokenData(payload);
 
-        // Extrair filiais do token
+        // Extrair filiais do token (novo formato JSON ou formato legado)
         const filiaisExtraidas: Filial[] = [];
-        Object.keys(payload).forEach(key => {
-          if (key.startsWith('Filial')) {
-            const filialIndex = parseInt(key.replace('Filial', ''));
-            const filialData = payload[key];
-
-            if (Array.isArray(filialData) && filialData.length >= 2) {
+        
+        if (payload.Filiais) {
+          // Novo formato: "Filiais" é uma string JSON com array de objetos
+          try {
+            const filialArray = JSON.parse(payload.Filiais);
+            filialArray.forEach((f: any) => {
               filiaisExtraidas.push({
-                id: filialIndex,
-                nome: filialData[0],
-                cnpj: filialData[1]
+                id: f.Id,
+                nome: f.FilialName,
+                cnpj: f.FilialCpfCnpj,
+                empresaId: f.EmpresaId,
+                empresaName: f.EmpresaName,
               });
-            }
+            });
+          } catch (e) {
+            console.error('Erro ao parsear Filiais do token:', e);
           }
-        });
+        } else {
+          // Formato legado: Filial0, Filial1, etc.
+          Object.keys(payload).forEach(key => {
+            if (key.startsWith('Filial')) {
+              const filialIndex = parseInt(key.replace('Filial', ''));
+              const filialData = payload[key];
+
+              if (Array.isArray(filialData) && filialData.length >= 2) {
+                filiaisExtraidas.push({
+                  id: filialIndex,
+                  nome: filialData[0],
+                  cnpj: filialData[1],
+                  empresaId: payload.EmpresaId ? parseInt(payload.EmpresaId) : 0,
+                  empresaName: payload.EmpresaName || '',
+                });
+              }
+            }
+          });
+        }
         setFiliais(filiaisExtraidas);
 
         // Só definir filial selecionada automaticamente se ainda não foi inicializado
