@@ -407,7 +407,7 @@ export const Dashboard = () => {
               <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Calendário Paroquial</h1>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                 <span className="hidden sm:block">
-                  {tokenData?.EmpresaName}
+                  {filiais.find(f => f.id === filialSelecionada)?.empresaName || tokenData?.EmpresaName}
                 </span>
                 {filiais.length > 0 && <>
                   <span className="hidden sm:block">•</span>
