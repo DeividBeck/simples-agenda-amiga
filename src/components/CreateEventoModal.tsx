@@ -433,7 +433,7 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
     }
 
     const tipoEventoIdValue = values.tipoEventoId ? parseInt(values.tipoEventoId) : null;
-    
+
     const data: CreateEventoRequest = {
       titulo: values.titulo,
       descricao: values.descricao,
@@ -592,16 +592,16 @@ export const CreateEventoModal: React.FC<CreateEventoModalProps> = ({ isOpen, on
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo de Evento *</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       value={field.value}
                       disabled={loadingTipos || loadingTiposGlobal}
                     >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={
-                            (loadingTipos || loadingTiposGlobal) 
-                              ? "Carregando..." 
+                            (loadingTipos || loadingTiposGlobal)
+                              ? "Carregando..."
                               : "Selecione o tipo"
                           } />
                         </SelectTrigger>
