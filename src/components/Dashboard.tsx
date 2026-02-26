@@ -78,6 +78,7 @@ export const Dashboard = () => {
     canReadTiposEventos,
     canReadTiposSalas,
     canListUsuarios,
+    canCreateUsuarios,
     isAdmin
   } = useClaims();
   const {
@@ -306,8 +307,8 @@ export const Dashboard = () => {
 
             {canReadEventos() && <div className="space-y-2">
               <label className="text-sm font-medium">Filtrar por nível</label>
-              <Select 
-                value={filtroCompartilhamento?.[0]?.toString() || 'all'} 
+              <Select
+                value={filtroCompartilhamento?.[0]?.toString() || 'all'}
                 onValueChange={value => setFiltroCompartilhamento(value === 'all' ? undefined : [parseInt(value) as ENivelCompartilhamento])}
               >
                 <SelectTrigger>
@@ -366,7 +367,7 @@ export const Dashboard = () => {
                 </Button>
               )}
 
-              {isAdmin() && <Button onClick={() => setShowCadastroUsuarioModal(true)} variant="outline" className="w-full justify-start">
+              {canCreateUsuarios() && <Button onClick={() => setShowCadastroUsuarioModal(true)} variant="outline" className="w-full justify-start">
                 <Users className="h-4 w-4 mr-3" />
                 Cadastrar Usuário
               </Button>}
@@ -440,8 +441,8 @@ export const Dashboard = () => {
 
               {canReadEventos() && <div className="flex items-center gap-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/30">
                 <Filter className="h-4 w-4 text-gray-600" />
-                <Select 
-                  value={filtroCompartilhamento?.[0]?.toString() || 'all'} 
+                <Select
+                  value={filtroCompartilhamento?.[0]?.toString() || 'all'}
                   onValueChange={value => setFiltroCompartilhamento(value === 'all' ? undefined : [parseInt(value) as ENivelCompartilhamento])}
                 >
                   <SelectTrigger className="w-32 border-0 bg-transparent focus:ring-0">
@@ -513,7 +514,7 @@ export const Dashboard = () => {
                     Gerenciar Tipos
                   </DropdownMenuItem>
                 )}
-                {isAdmin() && <DropdownMenuItem onClick={() => setShowCadastroUsuarioModal(true)}>
+                {canCreateUsuarios() && <DropdownMenuItem onClick={() => setShowCadastroUsuarioModal(true)}>
                   <Users className="h-4 w-4 mr-2" />
                   Cadastrar Usuário
                 </DropdownMenuItem>}

@@ -96,6 +96,8 @@ export const useClaims = () => {
   const canEditReservas = () => hasCalendarioClaim('ReservaEditar');
   const canDeleteReservas = () => hasCalendarioClaim('ReservaExcluir');
 
+  // Claims para usuários (módulo Autenticacao) - Adicionando listagem, criação e edição
+
   // Verificar se é administrador (tem a claim específica de Admin)
   const isAdmin = () => {
     return hasCalendarioClaim('Admin');
@@ -103,6 +105,8 @@ export const useClaims = () => {
 
   // Claims para usuários (módulo Autenticacao)
   const canListUsuarios = () => hasAutenticacaoClaim('ListarUsuario');
+  const canUpdateUsuarios = () => hasAutenticacaoClaim('AtualizarUsuario');
+  const canCreateUsuarios = () => hasAutenticacaoClaim('IncluirUsuario');
 
   return {
     getClaims,
@@ -134,6 +138,8 @@ export const useClaims = () => {
     canEditReservas,
     canDeleteReservas,
     canListUsuarios,
+    canCreateUsuarios,
+    canUpdateUsuarios,
     isAdmin
   };
 };
