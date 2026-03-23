@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useCepSearch } from '@/hooks/useCepSearch';
-import { fetchApi } from '@/hooks/useApi';
+import { createInscricaoBatismo } from '@/services/agenda/agenda.service';
 import { Loader2, User, Users, MapPin, Calendar, Phone, Mail, CheckCircle, Building } from 'lucide-react';
 
 const schema = z.object({
