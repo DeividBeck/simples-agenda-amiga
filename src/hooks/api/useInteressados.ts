@@ -1,26 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Interessado } from '@/types/api';
 import { useAuth } from '../useAuth';
-import { fetchApi } from './baseApi';
+import * as agendaService from '@/services/agenda/agenda.service';
 
 // Hook para buscar contratantes
 export const useInteressados = () => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['interessados', filialSelecionada],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Interessados`, token) as Promise<Interessado[]>,
+    queryFn: () => agendaService.getInteressados(filialSelecionada),
     enabled: isAuthenticated,
   });
 };
 
 // Hook para buscar contratante por ID
 export const useInteressado = (id: number) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['interessado', filialSelecionada, id],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Interessados/${id}`, token) as Promise<Interessado>,
+    queryFn: () => agendaService.getInteressado(filialSelecionada, id),
     enabled: isAuthenticated && !!id,
   });
 };
@@ -28,14 +28,11 @@ export const useInteressado = (id: number) => {
 // Hook para criar contratante
 export const useCreateInteressado = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (data: Omit<Interessado, 'id'>) => {
-      return fetchApi(`/${filialSelecionada}/Interessados`, token, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }) as Promise<Interessado>;
+      return agendaService.createInteressado(filialSelecionada, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['interessados', filialSelecionada] });
@@ -46,14 +43,11 @@ export const useCreateInteressado = () => {
 // Hook para atualizar contratante
 export const useUpdateInteressado = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Interessado }) => {
-      return fetchApi(`/${filialSelecionada}/Interessados/${id}`, token, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      return agendaService.updateInteressado(filialSelecionada, id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['interessados', filialSelecionada] });
@@ -64,13 +58,11 @@ export const useUpdateInteressado = () => {
 // Hook para deletar contratante
 export const useDeleteInteressado = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (id: number) => {
-      return fetchApi(`/${filialSelecionada}/Interessados/${id}`, token, {
-        method: 'DELETE',
-      });
+      return agendaService.deleteInteressado(filialSelecionada, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['interessados', filialSelecionada] });

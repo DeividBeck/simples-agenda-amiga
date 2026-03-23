@@ -1,47 +1,28 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../useAuth';
-import { fetchApi } from './baseApi';
+import * as agendaService from '@/services/agenda/agenda.service';
+import { FilialData } from '@/services/agenda/agenda.types';
 
-export interface FilialData {
-  id: number;
-  nome: string;
-  cnpj: string;
-  email: string | null;
-  telefone: string | null;
-  endereco: string | null;
-  cidade: string | null;
-  estado: string | null;
-  cep: string | null;
-  representanteLegal: string | null;
-  rgRepresentante: string | null;
-  cpfRepresentante: string | null;
-  banco: string | null;
-  agencia: string | null;
-  contaCorrente: string | null;
-  chavePix: string | null;
-}
+export type { FilialData };
 
 export const useFilialData = () => {
   const { token, filialSelecionada } = useAuth();
 
   return useQuery<FilialData>({
     queryKey: ['filial-data', filialSelecionada],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Filial`, token!),
+    queryFn: () => agendaService.getFilialData(filialSelecionada),
     enabled: !!token && filialSelecionada !== undefined,
   });
 };
 
 export const useUpdateFilial = () => {
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: FilialData) =>
-      fetchApi(`/${filialSelecionada}/Filial`, token!, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
+      agendaService.updateFilialData(filialSelecionada, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['filial-data', filialSelecionada] });
     },

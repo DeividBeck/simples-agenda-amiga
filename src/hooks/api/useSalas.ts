@@ -3,44 +3,42 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sala, CreateSalaRequest, StatusSala } from '@/types/api';
 import { useAuth } from '../useAuth';
 import { useClaims } from '../useClaims';
-import { fetchApi } from './baseApi';
+import * as agendaService from '@/services/agenda/agenda.service';
 
-// Hook para buscar salas - CORRIGIDO: agora só habilita se pode ler salas
+// Hook para buscar salas
 export const useSalas = () => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
   const { canReadSalas } = useClaims();
 
   return useQuery({
     queryKey: ['salas', filialSelecionada],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Salas`, token) as Promise<Sala[]>,
+    queryFn: () => agendaService.getSalas(filialSelecionada),
     enabled: isAuthenticated && canReadSalas(),
   });
 };
 
 // Hook para buscar sala por ID
 export const useSala = (id: number) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
   const { canReadSalas } = useClaims();
 
   return useQuery({
     queryKey: ['sala', filialSelecionada, id],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Salas/${id}`, token) as Promise<Sala>,
+    queryFn: () => agendaService.getSala(filialSelecionada, id),
     enabled: !!id && isAuthenticated && canReadSalas(),
   });
 };
 
-// Hook para criar sala - CORRIGIDO: verifica se pode criar salas
+// Hook para criar sala
 export const useCreateSala = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (data: CreateSalaRequest) => {
-      // Converter datas para formato ISO UTC
       const dataInicioISO = new Date(data.dataInicio).toISOString();
       const dataFimISO = new Date(data.dataFim).toISOString();
 
-      // Estrutura exata conforme modelo backend
       const requestData = {
         descricao: data.descricao,
         dataInicio: dataInicioISO,
@@ -51,10 +49,7 @@ export const useCreateSala = () => {
         dataCriacao: new Date().toISOString(),
       };
 
-      return fetchApi(`/${filialSelecionada}/Salas`, token, {
-        method: 'POST',
-        body: JSON.stringify(requestData),
-      });
+      return agendaService.createSala(filialSelecionada, requestData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
@@ -62,10 +57,7 @@ export const useCreateSala = () => {
     },
     onError: (error: any) => {
       console.error('Erro ao criar sala:', error);
-
-      // Extrair mensagem amigável do erro
       let errorMessage = 'Erro ao criar sala';
-
       if (error.message && error.message.includes('API Error:')) {
         try {
           const jsonMatch = error.message.match(/\{.*\}/);
@@ -77,7 +69,6 @@ export const useCreateSala = () => {
           errorMessage = error.message.replace(/API Error: \d+ - /, '');
         }
       }
-
       throw new Error(errorMessage);
     },
   });
@@ -101,29 +92,11 @@ interface UpdateSalaData {
 // Hook para atualizar sala
 export const useUpdateSala = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateSalaData }) => {
-      // Estrutura conforme esperado pelo backend
-      const requestData = {
-        id: data.id,
-        empresaId: data.empresaId,
-        filialId: data.filialId,
-        descricao: data.descricao,
-        dataInicio: data.dataInicio,
-        dataFim: data.dataFim,
-        allDay: data.allDay,
-        tipoDeSalaId: data.tipoDeSalaId,
-        tipoDeSala: data.tipoDeSala,
-        status: data.status,
-        dataCriacao: data.dataCriacao,
-      };
-
-      return fetchApi(`/${filialSelecionada}/Salas/${id}`, token, {
-        method: 'PUT',
-        body: JSON.stringify(requestData),
-      });
+      return agendaService.updateSala(filialSelecionada, id, data);
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
@@ -134,28 +107,25 @@ export const useUpdateSala = () => {
 
 // Hook para buscar salas pendentes
 export const useSalasPendentes = () => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
   const { canReadSalas } = useClaims();
 
   return useQuery({
     queryKey: ['salasPendentes', filialSelecionada],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Salas/Pendentes`, token) as Promise<StatusSala[]>,
+    queryFn: () => agendaService.getSalasPendentes(filialSelecionada),
     enabled: isAuthenticated && canReadSalas(),
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    refetchInterval: 30000,
   });
 };
 
 // Hook para atualizar status da sala
 export const useUpdateSalaStatus = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: number }) => {
-      return fetchApi(`/${filialSelecionada}/Salas/${id}/status`, token, {
-        method: 'PUT',
-        body: JSON.stringify({ status }),
-      });
+      return agendaService.updateSalaStatus(filialSelecionada, id, status);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
@@ -164,16 +134,14 @@ export const useUpdateSalaStatus = () => {
   });
 };
 
-// Hook para deletar sala - CORRIGIDO: igual ao de eventos
+// Hook para deletar sala
 export const useDeleteSala = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (id: number) => {
-      return fetchApi(`/${filialSelecionada}/Salas/${id}`, token, {
-        method: 'DELETE',
-      });
+      return agendaService.deleteSala(filialSelecionada, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });

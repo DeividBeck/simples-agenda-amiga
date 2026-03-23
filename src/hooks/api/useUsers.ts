@@ -1,6 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { getCadastroUrl, getChangePasswordUrl } from '@/config/api';
+import * as autenticacaoService from '@/services/autenticacao/autenticacao.service';
+import { ChangePasswordRequest } from '@/services/autenticacao/autenticacao.types';
+
+export type { ChangePasswordRequest as ChangePasswordForm };
 
 interface CadastroForm {
   email: string;
@@ -8,19 +11,13 @@ interface CadastroForm {
   claims: string[];
 }
 
-export interface ChangePasswordForm {
-  oldPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 export const useCadastroUsuario = () => {
-  const { token, tokenData } = useAuth();
+  const { tokenData } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CadastroForm) => {
-      if (!token || !tokenData) {
+      if (!tokenData) {
         throw new Error('Token não encontrado');
       }
 
@@ -35,23 +32,7 @@ export const useCadastroUsuario = () => {
         filiais: []
       };
 
-      const response = await fetch(getCadastroUrl(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(usuarioData),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Debug - Error response:', errorText);
-        throw new Error(`Erro no cadastro: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      return result;
+      return autenticacaoService.cadastrarUsuario(usuarioData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] });
@@ -60,29 +41,10 @@ export const useCadastroUsuario = () => {
 };
 
 export const useChangePassword = () => {
-  const { token } = useAuth();
-
   return useMutation({
-    mutationFn: async (data: ChangePasswordForm) => {
-      if (!token) {
-        throw new Error('Token de autenticação não encontrado');
-      }
-
-      const response = await fetch(getChangePasswordUrl(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro ao alterar senha: ${response.status} - ${errorText}`);
-      }
-
-      return response.ok;
+    mutationFn: async (data: ChangePasswordRequest) => {
+      await autenticacaoService.changePassword(data);
+      return true;
     },
   });
 };

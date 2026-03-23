@@ -7,9 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
-
-import { getAuthUrl } from '@/config/api';
-
+import { login } from '@/services/autenticacao/autenticacao.service';
+import { saveToken, saveRefreshToken, saveTokenExpiration } from '@/services/http';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -21,7 +20,6 @@ export default function Login() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // Se já está autenticado, redireciona para home
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
@@ -33,7 +31,6 @@ export default function Login() {
     setIsLoading(true);
     setError('');
 
-    // Validações básicas
     if (!email || !senha) {
       setError('Por favor, preencha todos os campos');
       setIsLoading(false);
@@ -47,79 +44,34 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(getAuthUrl(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          senha
-        })
-      });
+      const data = await login({ email, senha });
 
-      if (!response.ok) {
-        // Tratamento específico por status code
-        switch (response.status) {
-          case 400:
-            setError('Dados inválidos. Verifique o email e senha');
-            break;
-          case 401:
-            setError('Email ou senha incorretos. Tente novamente');
-            break;
-          case 403:
-            setError('Acesso negado. Entre em contato com o administrador');
-            break;
-          case 404:
-            setError('Serviço não encontrado. Tente novamente mais tarde');
-            break;
-          case 500:
-            setError('Erro interno do servidor. Tente novamente em alguns minutos');
-            break;
-          case 503:
-            setError('Serviço temporariamente indisponível. Tente novamente em alguns minutos');
-            break;
-          default:
-            const errorText = await response.text();
-            if (errorText.includes('Failed to connect') || errorText.includes('conexão')) {
-              setError('Erro de conexão com o servidor. Verifique sua internet e tente novamente');
-            } else if (errorText.includes('timeout')) {
-              setError('Conexão expirou. Tente novamente');
-            } else {
-              setError('Erro ao fazer login. Tente novamente');
-            }
-        }
-        return;
-      }
-
-      const data = await response.json();
-
-      // Verificar se o token foi retornado
       if (data.token) {
-        localStorage.setItem('authToken', data.token);
-        // Mostrar mensagem de sucesso antes de redirecionar
+        saveToken(data.token);
+        saveRefreshToken(data.refreshToken);
+        saveTokenExpiration(data.dataExpiracao);
         setError('');
-        // Aguardar um momento para mostrar feedback visual
         await new Promise(resolve => setTimeout(resolve, 500));
-        // Recarregar a página para atualizar o estado de autenticação
         window.location.href = '/agendaparoquial/';
+      } else if (data.erros && data.erros.length > 0) {
+        setError(data.erros.join(', '));
       } else {
         setError('Erro na resposta do servidor. Tente novamente');
       }
-
     } catch (error) {
       console.error('Erro no login:', error);
 
-      // Tratamento específico para diferentes tipos de erro
       if (error instanceof TypeError && error.message.includes('fetch')) {
         setError('Erro de conexão. Verifique sua internet e tente novamente');
       } else if (error instanceof Error) {
-        if (error.message.includes('Failed to connect') || error.message.includes('conexão')) {
+        if (error.message.includes('401')) {
+          setError('Email ou senha incorretos. Tente novamente');
+        } else if (error.message.includes('403')) {
+          setError('Acesso negado. Entre em contato com o administrador');
+        } else if (error.message.includes('Failed to connect') || error.message.includes('conexão')) {
           setError('Não foi possível conectar ao servidor. Tente novamente em alguns minutos');
-        } else if (error.message.includes('timeout')) {
-          setError('Conexão expirou. Verifique sua internet e tente novamente');
         } else {
-          setError('Erro inesperado. Tente novamente');
+          setError('Erro ao fazer login. Tente novamente');
         }
       } else {
         setError('Erro ao processar login. Tente novamente');

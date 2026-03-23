@@ -1,12 +1,23 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  getToken,
+  saveToken,
+  removeToken,
+  saveRefreshToken,
+  saveTokenExpiration,
+  decodeJwtPayload,
+  isTokenExpired,
+  getFilialSelecionada,
+  saveFilialSelecionada,
+  removeFilialSelecionada,
+} from '@/services/http';
 
 interface TokenData {
-  EmpresaId: string;
-  EmpresaName: string;
-  Calendario?: string[]; // Claims do calendário
-  [key: string]: any; // Para capturar Filial0, Filial1, etc.
+  Filiais?: string;
+  Calendario?: string[];
+  [key: string]: any;
   exp: number;
   iss: string;
   aud: string;
@@ -24,37 +35,27 @@ export const useAuth = () => {
   const [token, setToken] = useState<string | null>(null);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [filiais, setFiliais] = useState<Filial[]>([]);
-  const [filialSelecionada, setFilialSelecionada] = useState<number>(1);
+  const [filialSelecionada, setFilialSelecionada_] = useState<number>(1);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isChangingFilial, setIsChangingFilial] = useState(false);
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const authToken = localStorage.getItem('authToken');
+    const authToken = getToken();
 
     if (authToken) {
       try {
-        // Decodificar o JWT com suporte a UTF-8
-        const base64Url = authToken.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        );
-        const payload = JSON.parse(jsonPayload);
+        const payload = decodeJwtPayload<TokenData>(authToken);
 
         // Verificar se o token não está expirado
-        const now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now) {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('filialSelecionada');
+        if (isTokenExpired(authToken)) {
+          removeToken();
+          removeFilialSelecionada();
           setToken(null);
           setTokenData(null);
           setFiliais([]);
-          setFilialSelecionada(1);
+          setFilialSelecionada_(1);
           setIsInitialized(true);
           return;
         }
@@ -62,11 +63,10 @@ export const useAuth = () => {
         setToken(authToken);
         setTokenData(payload);
 
-        // Extrair filiais do token (novo formato JSON ou formato legado)
+        // Extrair filiais do token
         const filiaisExtraidas: Filial[] = [];
-        
+
         if (payload.Filiais) {
-          // Novo formato: "Filiais" é uma string JSON com array de objetos
           try {
             const filialArray = JSON.parse(payload.Filiais);
             filialArray.forEach((f: any) => {
@@ -84,10 +84,9 @@ export const useAuth = () => {
         } else {
           // Formato legado: Filial0, Filial1, etc.
           Object.keys(payload).forEach(key => {
-            if (key.startsWith('Filial')) {
+            if (key.startsWith('Filial') && key !== 'Filiais') {
               const filialIndex = parseInt(key.replace('Filial', ''));
               const filialData = payload[key];
-
               if (Array.isArray(filialData) && filialData.length >= 2) {
                 filiaisExtraidas.push({
                   id: filialIndex,
@@ -102,31 +101,18 @@ export const useAuth = () => {
         }
         setFiliais(filiaisExtraidas);
 
-        // Só definir filial selecionada automaticamente se ainda não foi inicializado
-        // e se há filiais disponíveis
         if (!isInitialized && filiaisExtraidas.length > 0) {
-          // Verificar se há uma filial salva no localStorage
-          const savedFilial = localStorage.getItem('filialSelecionada');
-
-          if (savedFilial) {
-            const savedFilialId = parseInt(savedFilial);
-            // Verificar se a filial salva existe nas filiais extraídas
-            if (filiaisExtraidas.some(f => f.id === savedFilialId)) {
-              setFilialSelecionada(savedFilialId);
-            } else {
-              // Se a filial salva não existe, usar a primeira
-              setFilialSelecionada(filiaisExtraidas[0].id);
-              localStorage.setItem('filialSelecionada', filiaisExtraidas[0].id.toString());
-            }
+          const savedFilialId = getFilialSelecionada();
+          if (filiaisExtraidas.some(f => f.id === savedFilialId)) {
+            setFilialSelecionada_(savedFilialId);
           } else {
-            // Se não há filial salva, usar a primeira
-            setFilialSelecionada(filiaisExtraidas[0].id);
-            localStorage.setItem('filialSelecionada', filiaisExtraidas[0].id.toString());
+            setFilialSelecionada_(filiaisExtraidas[0].id);
+            saveFilialSelecionada(filiaisExtraidas[0].id);
           }
         }
       } catch (error) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('filialSelecionada');
+        removeToken();
+        removeFilialSelecionada();
         setToken(null);
         setTokenData(null);
       }
@@ -134,7 +120,7 @@ export const useAuth = () => {
       setToken(null);
       setTokenData(null);
       setFiliais([]);
-      setFilialSelecionada(1);
+      setFilialSelecionada_(1);
     }
 
     setIsInitialized(true);
@@ -147,42 +133,27 @@ export const useAuth = () => {
   };
 
   const handleSetFilialSelecionada = async (filialId: number) => {
+    if (filialId === filialSelecionada) return;
 
-    // Se já é a filial selecionada, não fazer nada
-    if (filialId === filialSelecionada) {
-      return;
-    }
-
-    // Mostrar loading
     setIsChangingFilial(true);
-
     try {
-      // Atualizar estado e localStorage
-      setFilialSelecionada(filialId);
-      localStorage.setItem('filialSelecionada', filialId.toString());
-
-      // Limpar cache do React Query para forçar recarregamento dos dados
+      setFilialSelecionada_(filialId);
+      saveFilialSelecionada(filialId);
       queryClient.clear();
-
-      // Aguardar um momento para mostrar o loading
       await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Fazer refresh da página para garantir que todos os dados sejam recarregados
       window.location.reload();
-
     } catch (error) {
-      // Em caso de erro, esconder loading
       setIsChangingFilial(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('filialSelecionada');
+    removeToken();
+    removeFilialSelecionada();
     setToken(null);
     setTokenData(null);
     setFiliais([]);
-    setFilialSelecionada(1);
+    setFilialSelecionada_(1);
     setIsInitialized(false);
   };
 
