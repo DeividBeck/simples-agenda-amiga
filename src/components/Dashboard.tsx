@@ -24,6 +24,7 @@ import { UsuariosModal } from './UsuariosModal';
 import { FullCalendarView } from './FullCalendarView';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { useEventos, useTiposEventos, useTiposDeSalas, useSalas, useSalasPendentes } from '@/hooks/useApi';
+import { DadosParoquiaModal } from './DadosParoquiaModal';
 import { useReservas } from '@/hooks/api/useReservas';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
