@@ -35,7 +35,7 @@ export const useAuth = () => {
   const [token, setToken] = useState<string | null>(null);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [filiais, setFiliais] = useState<Filial[]>([]);
-  const [filialSelecionada, setFilialSelecionada_] = useState<number>(1);
+  const [filialSelecionada, setFilialSelecionada_] = useState<number>(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isChangingFilial, setIsChangingFilial] = useState(false);
 
@@ -55,7 +55,7 @@ export const useAuth = () => {
           setToken(null);
           setTokenData(null);
           setFiliais([]);
-          setFilialSelecionada_(1);
+          setFilialSelecionada_(0);
           setIsInitialized(true);
           return;
         }
@@ -120,11 +120,11 @@ export const useAuth = () => {
       setToken(null);
       setTokenData(null);
       setFiliais([]);
-      setFilialSelecionada_(1);
+      setFilialSelecionada_(0);
     }
 
     setIsInitialized(true);
-  }, [isInitialized]);
+  }, []);
 
   const isTokenValid = () => {
     if (!tokenData) return false;
@@ -153,8 +153,8 @@ export const useAuth = () => {
     setToken(null);
     setTokenData(null);
     setFiliais([]);
-    setFilialSelecionada_(1);
-    setIsInitialized(false);
+    setFilialSelecionada_(0);
+    queryClient.clear();
   };
 
   return {

@@ -18,13 +18,13 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isInitialized } = useAuth();
 
   React.useEffect(() => {
-    if (isAuthenticated) {
+    if (isInitialized && isAuthenticated) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isInitialized, isAuthenticated, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

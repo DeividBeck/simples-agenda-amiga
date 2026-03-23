@@ -3,39 +3,67 @@ const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL;
 
 // 🔐 GERENCIAMENTO DO TOKEN
 export function getToken(): string | null {
-  return localStorage.getItem('auth_token');
+  return localStorage.getItem('authToken');
 }
 
 export function saveToken(token: string): void {
-  localStorage.setItem('auth_token', token);
+  localStorage.setItem('authToken', token);
 }
 
 export function getRefreshToken(): string | null {
-  return localStorage.getItem('auth_refresh_token');
+  return localStorage.getItem('refreshToken');
 }
 
 export function saveRefreshToken(refreshToken: string): void {
-  localStorage.setItem('auth_refresh_token', refreshToken);
+  localStorage.setItem('refreshToken', refreshToken);
 }
 
 export function saveTokenExpiration(dataExpiracao: string): void {
-  localStorage.setItem('auth_token_expiracao', dataExpiracao);
+  localStorage.setItem('tokenExpiration', dataExpiracao);
 }
 
 export function getTokenExpiration(): string | null {
-  return localStorage.getItem('auth_token_expiracao');
+  return localStorage.getItem('tokenExpiration');
+}
+
+export function saveUserEmail(email: string): void {
+  localStorage.setItem('userEmail', email);
+}
+
+export function getUserEmail(): string | null {
+  return localStorage.getItem('userEmail');
+}
+
+export function saveUserName(name: string): void {
+  localStorage.setItem('userName', name);
+}
+
+export function getUserName(): string | null {
+  return localStorage.getItem('userName');
+}
+
+export function saveUserEmpresa(empresa: string): void {
+  localStorage.setItem('userEmpresa', empresa);
+}
+
+export function getUserEmpresa(): string | null {
+  return localStorage.getItem('userEmpresa');
 }
 
 export function removeToken(): void {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('auth_refresh_token');
-  localStorage.removeItem('auth_token_expiracao');
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('tokenExpiration');
+  localStorage.removeItem('isAuthenticated');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userEmpresa');
 }
 
 // 📌 FILIAL SELECIONADA
 export function getFilialSelecionada(): number {
   const saved = localStorage.getItem('filialSelecionada');
-  return saved ? parseInt(saved) : 1;
+  return saved !== null ? parseInt(saved) : -1;
 }
 
 export function saveFilialSelecionada(filialId: number): void {

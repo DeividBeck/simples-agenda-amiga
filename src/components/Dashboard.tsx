@@ -65,6 +65,7 @@ export const Dashboard = () => {
     setFilialSelecionada,
     tokenData,
     isAuthenticated,
+    isInitialized,
     isChangingFilial,
     logout
   } = useAuth();
@@ -122,13 +123,13 @@ export const Dashboard = () => {
   // }
   // Se não há token, redirecionar para login
   React.useEffect(() => {
-    if (!token && !isAuthenticated) {
+    if (isInitialized && !token && !isAuthenticated) {
       navigate('/login', { replace: true });
     }
-  }, [token, isAuthenticated]);
+  }, [isInitialized, token, isAuthenticated, navigate]);
 
-  // Mostrar loading enquanto verifica autenticação
-  if (!token || !isAuthenticated) {
+  // Mostrar loading enquanto inicializa
+  if (!isInitialized) {
     return <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center">
       <div className="flex items-center space-x-2">
         <Loader className="h-6 w-6 animate-spin" />
