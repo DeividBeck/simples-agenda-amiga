@@ -49,6 +49,7 @@ export const Dashboard = () => {
   const [showGerenciarUsuariosModal, setShowGerenciarUsuariosModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showUsuariosModal, setShowUsuariosModal] = useState(false);
+  const [showDadosParoquiaModal, setShowDadosParoquiaModal] = useState(false);
 
   const [showInteressadosModal, setShowInteressadosModal] = useState(false);
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);

@@ -8,4 +8,5 @@ export * from './api/useInscricoes';
 export * from './api/useUsers';
 export * from './api/useInteressados';
 export * from './api/useReservas';
+export * from './api/useFilial';
 export { fetchApi } from './api/baseApi';
