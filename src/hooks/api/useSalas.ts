@@ -61,7 +61,6 @@ export const useCreateSala = () => {
       queryClient.invalidateQueries({ queryKey: ['salasPendentes', filialSelecionada] });
     },
     onError: (error: any) => {
-      console.error('Erro ao criar sala:', error);
 
       // Extrair mensagem amigável do erro
       let errorMessage = 'Erro ao criar sala';

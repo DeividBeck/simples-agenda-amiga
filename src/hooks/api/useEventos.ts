@@ -8,9 +8,9 @@ import { fetchApi } from './baseApi';
 // Hook para buscar eventos com filtro por níveis de compartilhamento (suporta array)
 export const useEventos = (niveis?: ENivelCompartilhamento[], enabled: boolean = true) => {
   const { token, filialSelecionada, isAuthenticated } = useAuth();
-  
+
   // Construir query string para múltiplos níveis: ?niveis=Local&niveis=Diocese
-  const queryParams = niveis && niveis.length > 0 
+  const queryParams = niveis && niveis.length > 0
     ? `?${niveis.map(n => `niveis=${ENivelCompartilhamento[n]}`).join('&')}`
     : '';
 
@@ -134,7 +134,6 @@ export const useCreateEvento = () => {
       queryClient.invalidateQueries({ queryKey: ['eventosPublicos', filialSelecionada] });
     },
     onError: (error: any) => {
-      console.error('Erro ao criar evento:', error);
 
       // Extrair mensagem amigável do erro
       let errorMessage = 'Erro ao criar evento';
@@ -220,7 +219,6 @@ export const useUpdateEvento = () => {
       queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
     },
     onError: (error) => {
-      console.error('5. Erro capturado no onError (atualização):', error);
     },
   });
 };

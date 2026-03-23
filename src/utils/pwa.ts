@@ -36,7 +36,6 @@ export const showInstallPrompt = async (): Promise<boolean> => {
 
     return outcome === 'accepted';
   } catch (error) {
-    console.error('PWA: Erro ao mostrar prompt:', error);
     return false;
   }
 };
@@ -67,7 +66,6 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     const permission = await Notification.requestPermission();
     return permission === 'granted';
   } catch (error) {
-    console.error('PWA: Erro ao solicitar permissão de notificação:', error);
     return false;
   }
 };

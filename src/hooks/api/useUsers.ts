@@ -46,7 +46,6 @@ export const useCadastroUsuario = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Debug - Error response:', errorText);
         throw new Error(`Erro no cadastro: ${response.status} - ${errorText}`);
       }
 

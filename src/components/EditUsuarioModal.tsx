@@ -115,7 +115,6 @@ export const EditUsuarioModal: React.FC<EditUsuarioModalProps> = ({ isOpen, onCl
       toast.success('Usuário atualizado com sucesso!');
       onClose();
     } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
       toast.error('Erro ao atualizar usuário');
     }
   };

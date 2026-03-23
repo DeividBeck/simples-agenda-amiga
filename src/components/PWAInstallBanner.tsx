@@ -17,7 +17,7 @@ export const PWAInstallBanner: React.FC = () => {
 
     // Verificar inicialmente e depois a cada mudança no prompt
     checkInstallability();
-    
+
     // Listener para mudanças no evento beforeinstallprompt
     const handleBeforeInstallPrompt = () => {
       setTimeout(checkInstallability, 100); // Pequeno delay para garantir que o estado foi atualizado
@@ -35,7 +35,6 @@ export const PWAInstallBanner: React.FC = () => {
         setShowBanner(false);
       }
     } catch (error) {
-      console.error('Erro na instalação:', error);
     } finally {
       setIsInstalling(false);
     }
@@ -66,9 +65,9 @@ export const PWAInstallBanner: React.FC = () => {
                 <li>3. Toque em "Adicionar"</li>
               </ol>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => localStorage.setItem('pwa-install-dismissed-ios', 'true')}
               className="text-blue-600 hover:bg-blue-100"
             >
@@ -99,7 +98,7 @@ export const PWAInstallBanner: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button 
+            <Button
               onClick={handleInstall}
               disabled={isInstalling}
               size="sm"
@@ -107,9 +106,9 @@ export const PWAInstallBanner: React.FC = () => {
             >
               {isInstalling ? 'Instalando...' : 'Instalar'}
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleDismiss}
               className="text-green-600 hover:bg-green-100"
             >

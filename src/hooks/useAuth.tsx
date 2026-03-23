@@ -64,7 +64,7 @@ export const useAuth = () => {
 
         // Extrair filiais do token (novo formato JSON ou formato legado)
         const filiaisExtraidas: Filial[] = [];
-        
+
         if (payload.Filiais) {
           // Novo formato: "Filiais" é uma string JSON com array de objetos
           try {
@@ -79,7 +79,6 @@ export const useAuth = () => {
               });
             });
           } catch (e) {
-            console.error('Erro ao parsear Filiais do token:', e);
           }
         } else {
           // Formato legado: Filial0, Filial1, etc.

@@ -108,7 +108,6 @@ export default function Login() {
       }
 
     } catch (error) {
-      console.error('Erro no login:', error);
 
       // Tratamento específico para diferentes tipos de erro
       if (error instanceof TypeError && error.message.includes('fetch')) {
