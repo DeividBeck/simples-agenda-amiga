@@ -380,6 +380,11 @@ export const Dashboard = () => {
                   Gerenciar Usuários
                 </Button>
               )}
+
+              <Button onClick={() => setShowDadosParoquiaModal(true)} variant="outline" className="w-full justify-start">
+                <Building2 className="h-4 w-4 mr-3" />
+                Dados da Paróquia
+              </Button>
             </div>
           </div>
         </div>
