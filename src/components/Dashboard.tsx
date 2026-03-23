@@ -122,29 +122,8 @@ export const Dashboard = () => {
   // }
   // Se não há token, redirecionar para login
   React.useEffect(() => {
-    const oToken = localStorage.getItem('authToken');
-    if (oToken) {
-      const base64Url = oToken.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      const payload = JSON.parse(jsonPayload);
-
-      // Verificar se o token não está expirado
-      const now = Math.floor(Date.now() / 1000);
-      if (payload.exp && payload.exp < now) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('filialSelecionada');
-        navigate('/login', { replace: true });
-        return;
-      }
-    } else {
+    if (!token && !isAuthenticated) {
       navigate('/login', { replace: true });
-      return;
     }
   }, [token, isAuthenticated]);
 

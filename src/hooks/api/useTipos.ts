@@ -3,43 +3,40 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TipoEvento, TipoDeSala } from '@/types/api';
 import { useAuth } from '../useAuth';
 import { useClaims } from '../useClaims';
-import { fetchApi } from './baseApi';
+import * as agendaService from '@/services/agenda/agenda.service';
 
 // Hook para buscar tipos de eventos
 export const useTiposEventos = () => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
   const { canReadTiposEventos } = useClaims();
 
   return useQuery({
     queryKey: ['tiposEventos', filialSelecionada],
-    queryFn: () => fetchApi(`/${filialSelecionada}/TiposEventos`, token) as Promise<TipoEvento[]>,
+    queryFn: () => agendaService.getTiposEventos(filialSelecionada),
     enabled: isAuthenticated && canReadTiposEventos(),
   });
 };
 
 // Hook para buscar tipos de salas
 export const useTiposDeSalas = () => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
   const { canReadTiposSalas } = useClaims();
 
   return useQuery({
     queryKey: ['tiposDeSalas', filialSelecionada],
-    queryFn: () => fetchApi(`/${filialSelecionada}/TiposDeSalas`, token) as Promise<TipoDeSala[]>,
+    queryFn: () => agendaService.getTiposDeSalas(filialSelecionada),
     enabled: isAuthenticated && canReadTiposSalas(),
   });
 };
 
-// Hook para criar tipo de evento - CORRIGIDO: verifica se pode criar
+// Hook para criar tipo de evento
 export const useCreateTipoEvento = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (data: Omit<TipoEvento, 'id'>) => {
-      return fetchApi(`/${filialSelecionada}/TiposEventos`, token, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return agendaService.createTipoEvento(filialSelecionada, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tiposEventos', filialSelecionada] });
@@ -47,17 +44,14 @@ export const useCreateTipoEvento = () => {
   });
 };
 
-// Hook para criar tipo de sala - CORRIGIDO: verifica se pode criar
+// Hook para criar tipo de sala
 export const useCreateTipoDeSala = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (data: Omit<TipoDeSala, 'id' | 'dataCriacao' | 'dataAtualizacao'>) => {
-      return fetchApi(`/${filialSelecionada}/TiposDeSalas`, token, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return agendaService.createTipoDeSala(filialSelecionada, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tiposDeSalas', filialSelecionada] });
@@ -68,14 +62,11 @@ export const useCreateTipoDeSala = () => {
 // Hook para atualizar tipo de evento
 export const useUpdateTipoEvento = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: TipoEvento }) => {
-      return fetchApi(`/${filialSelecionada}/TiposEventos/${id}`, token, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      return agendaService.updateTipoEvento(filialSelecionada, id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tiposEventos', filialSelecionada] });
@@ -86,29 +77,25 @@ export const useUpdateTipoEvento = () => {
 // Hook para deletar tipo de evento
 export const useDeleteTipoEvento = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (id: number) => {
-      return fetchApi(`/${filialSelecionada}/TiposEventos/${id}`, token, {
-        method: 'DELETE',
-      });
+      return agendaService.deleteTipoEvento(filialSelecionada, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tiposEventos', filialSelecionada] });
     },
   });
 };
+
 export const useUpdateTipoDeSala = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: TipoDeSala }) => {
-      return fetchApi(`/${filialSelecionada}/TiposDeSalas/${id}`, token, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      return agendaService.updateTipoDeSala(filialSelecionada, id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tiposDeSalas', filialSelecionada] });
@@ -119,13 +106,11 @@ export const useUpdateTipoDeSala = () => {
 // Hook para deletar tipo de sala
 export const useDeleteTipoDeSala = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: (id: number) => {
-      return fetchApi(`/${filialSelecionada}/TiposDeSalas/${id}`, token, {
-        method: 'DELETE',
-      });
+      return agendaService.deleteTipoDeSala(filialSelecionada, id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tiposDeSalas', filialSelecionada] });

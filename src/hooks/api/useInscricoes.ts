@@ -2,15 +2,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { FichaInscricao } from '@/types/api';
 import { useAuth } from '../useAuth';
-import { fetchApi } from './baseApi';
+import * as agendaService from '@/services/agenda/agenda.service';
 
 // Hook para buscar inscrições de um evento
 export const useInscricoesEvento = (eventoId: number) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
   
   return useQuery({
     queryKey: ['inscricoes', filialSelecionada, eventoId],
-    queryFn: () => fetchApi(`/${filialSelecionada}/FichaInscricaoBatismos/Evento/${eventoId}`, token) as Promise<FichaInscricao[]>,
+    queryFn: () => agendaService.getInscricoesEvento(filialSelecionada, eventoId),
     enabled: !!eventoId && isAuthenticated,
   });
 };

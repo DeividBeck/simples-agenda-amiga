@@ -3,84 +3,83 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Evento, CreateEventoRequest, ENivelCompartilhamento } from '@/types/api';
 import { useAuth } from '../useAuth';
 import { useClaims } from '../useClaims';
-import { fetchApi } from './baseApi';
+import * as agendaService from '@/services/agenda/agenda.service';
 
 // Hook para buscar eventos com filtro por níveis de compartilhamento (suporta array)
 export const useEventos = (niveis?: ENivelCompartilhamento[], enabled: boolean = true) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
   
-  // Construir query string para múltiplos níveis: ?niveis=Local&niveis=Diocese
   const queryParams = niveis && niveis.length > 0 
     ? `?${niveis.map(n => `niveis=${ENivelCompartilhamento[n]}`).join('&')}`
     : '';
 
   return useQuery({
     queryKey: ['eventos', filialSelecionada, niveis],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Eventos${queryParams}`, token) as Promise<Evento[]>,
+    queryFn: () => agendaService.getEventos(filialSelecionada, queryParams),
     enabled: isAuthenticated && enabled,
   });
 };
 
 // Hook para buscar eventos públicos
 export const useEventosPublicos = () => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['eventosPublicos', filialSelecionada],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Eventos/Publicos`, token) as Promise<Evento[]>,
+    queryFn: () => agendaService.getEventosPublicos(filialSelecionada),
     enabled: isAuthenticated,
   });
 };
 
 // Hook para buscar eventos da diocese
 export const useEventosDiocese = (dioceseId: number) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['eventosDiocese', filialSelecionada, dioceseId],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Eventos/Diocese/${dioceseId}`, token) as Promise<Evento[]>,
+    queryFn: () => agendaService.getEventosDiocese(filialSelecionada, dioceseId),
     enabled: !!dioceseId && isAuthenticated,
   });
 };
 
 // Hook para buscar eventos da paróquia
 export const useEventosParoquia = (dioceseId: number, paroquiaId: number) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['eventosParoquia', filialSelecionada, dioceseId, paroquiaId],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Eventos/Paroquia/${dioceseId}/${paroquiaId}`, token) as Promise<Evento[]>,
+    queryFn: () => agendaService.getEventosParoquia(filialSelecionada, dioceseId, paroquiaId),
     enabled: !!dioceseId && !!paroquiaId && isAuthenticated,
   });
 };
 
 // Hook para buscar evento por ID
 export const useEvento = (id: number) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['evento', filialSelecionada, id],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Eventos/${id}`, token) as Promise<Evento>,
+    queryFn: () => agendaService.getEvento(filialSelecionada, id),
     enabled: !!id && isAuthenticated,
   });
 };
 
-// Hook para buscar evento por slug - ATUALIZADO
+// Hook para buscar evento por slug
 export const useEventoBySlug = (slug: string) => {
-  const { token, filialSelecionada, isAuthenticated } = useAuth();
+  const { filialSelecionada, isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: ['evento', 'slug', filialSelecionada, slug],
-    queryFn: () => fetchApi(`/${filialSelecionada}/Eventos/Slug/${slug}`, token) as Promise<Evento>,
+    queryFn: () => agendaService.getEventoBySlug(filialSelecionada, slug),
     enabled: !!slug && isAuthenticated,
   });
 };
 
-// Novo hook para buscar evento público por slug
+// Hook para buscar evento público por slug
 export const useEventoBySlugPublico = (filial: number, slug: string) => {
   return useQuery({
     queryKey: ['evento', 'publico', 'slug', filial, slug],
-    queryFn: () => fetchApi(`/${filial}/Eventos/publico/${slug}`) as Promise<Evento>,
+    queryFn: () => agendaService.getEventoBySlugPublico(filial, slug),
     enabled: !!filial && !!slug,
   });
 };
@@ -88,7 +87,7 @@ export const useEventoBySlugPublico = (filial: number, slug: string) => {
 // Hook para criar evento
 export const useCreateEvento = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
   const { canCreateEventos } = useClaims();
 
   return useMutation({
@@ -97,7 +96,6 @@ export const useCreateEvento = () => {
         throw new Error('Você não tem permissão para criar eventos');
       }
 
-      // Converter datas para formato ISO UTC se necessário
       const dataInicioISO = data.dataInicio.includes('T') ?
         new Date(data.dataInicio).toISOString() :
         new Date(data.dataInicio + 'T00:00:00').toISOString();
@@ -106,7 +104,6 @@ export const useCreateEvento = () => {
         new Date(data.dataFim).toISOString() :
         new Date(data.dataFim + 'T23:59:59').toISOString();
 
-      // Estrutura dos dados conforme esperado pelo backend
       const requestData = {
         titulo: data.titulo,
         descricao: data.descricao,
@@ -124,10 +121,7 @@ export const useCreateEvento = () => {
         reserva: data.reserva || null,
       };
 
-      return fetchApi(`/${filialSelecionada}/Eventos`, token, {
-        method: 'POST',
-        body: JSON.stringify(requestData),
-      });
+      return agendaService.createEvento(filialSelecionada, requestData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eventos', filialSelecionada] });
@@ -135,10 +129,7 @@ export const useCreateEvento = () => {
     },
     onError: (error: any) => {
       console.error('Erro ao criar evento:', error);
-
-      // Extrair mensagem amigável do erro
       let errorMessage = 'Erro ao criar evento';
-
       if (error.message && error.message.includes('API Error:')) {
         try {
           const jsonMatch = error.message.match(/\{.*\}/);
@@ -150,13 +141,12 @@ export const useCreateEvento = () => {
           errorMessage = error.message.replace(/API Error: \d+ - /, '');
         }
       }
-
       throw new Error(errorMessage);
     },
   });
 };
 
-// Interface para dados de atualização de evento (conforme formato que funciona no Postman)
+// Interface para dados de atualização de evento
 interface UpdateEventoData {
   id: number;
   titulo: string;
@@ -187,12 +177,10 @@ interface UpdateEventoData {
 
 export const useUpdateEvento = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
 
   return useMutation({
     mutationFn: ({ id, data, scope }: { id: number; data: Omit<UpdateEventoData, 'id'>; scope?: number }) => {
-
-      // Converter datas para formato ISO UTC se necessário
       const dataInicioISO = data.dataInicio.includes('T') ?
         new Date(data.dataInicio).toISOString() :
         new Date(data.dataInicio + 'T00:00:00').toISOString();
@@ -206,12 +194,9 @@ export const useUpdateEvento = () => {
         id,
         dataInicio: dataInicioISO,
         dataFim: dataFimISO,
-      } as UpdateEventoData;
-      const queryParam = scope !== undefined ? `?scope=${scope}` : '';
-      return fetchApi(`/${filialSelecionada}/Eventos/${id}${queryParam}`, token, {
-        method: 'PUT',
-        body: JSON.stringify(requestData),
-      });
+      };
+
+      return agendaService.updateEvento(filialSelecionada, id, requestData, scope);
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['eventos', filialSelecionada] });
@@ -220,7 +205,7 @@ export const useUpdateEvento = () => {
       queryClient.invalidateQueries({ queryKey: ['salas', filialSelecionada] });
     },
     onError: (error) => {
-      console.error('5. Erro capturado no onError (atualização):', error);
+      console.error('Erro na atualização:', error);
     },
   });
 };
@@ -228,7 +213,7 @@ export const useUpdateEvento = () => {
 // Hook para deletar evento
 export const useDeleteEvento = () => {
   const queryClient = useQueryClient();
-  const { token, filialSelecionada } = useAuth();
+  const { filialSelecionada } = useAuth();
   const { canDeleteEventos } = useClaims();
 
   return useMutation({
@@ -236,11 +221,7 @@ export const useDeleteEvento = () => {
       if (!canDeleteEventos()) {
         throw new Error('Você não tem permissão para excluir eventos');
       }
-
-      const queryParam = scope !== undefined ? `?scope=${scope}` : '';
-      return fetchApi(`/${filialSelecionada}/Eventos/${id}${queryParam}`, token, {
-        method: 'DELETE',
-      });
+      return agendaService.deleteEvento(filialSelecionada, id, scope);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['eventos', filialSelecionada] });
