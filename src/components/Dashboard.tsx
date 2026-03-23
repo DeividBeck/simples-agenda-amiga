@@ -24,6 +24,7 @@ import { UsuariosModal } from './UsuariosModal';
 import { FullCalendarView } from './FullCalendarView';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { useEventos, useTiposEventos, useTiposDeSalas, useSalas, useSalasPendentes } from '@/hooks/useApi';
+import { DadosParoquiaModal } from './DadosParoquiaModal';
 import { useReservas } from '@/hooks/api/useReservas';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -48,6 +49,7 @@ export const Dashboard = () => {
   const [showGerenciarUsuariosModal, setShowGerenciarUsuariosModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showUsuariosModal, setShowUsuariosModal] = useState(false);
+  const [showDadosParoquiaModal, setShowDadosParoquiaModal] = useState(false);
 
   const [showInteressadosModal, setShowInteressadosModal] = useState(false);
   const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
@@ -378,6 +380,11 @@ export const Dashboard = () => {
                   Gerenciar Usuários
                 </Button>
               )}
+
+              <Button onClick={() => setShowDadosParoquiaModal(true)} variant="outline" className="w-full justify-start">
+                <Building2 className="h-4 w-4 mr-3" />
+                Dados da Paróquia
+              </Button>
             </div>
           </div>
         </div>
@@ -524,6 +531,11 @@ export const Dashboard = () => {
                     Gerenciar Usuários
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowDadosParoquiaModal(true)}>
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Dados da Paróquia
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -723,6 +735,8 @@ export const Dashboard = () => {
     <InteressadosModal isOpen={showInteressadosModal} onClose={() => setShowInteressadosModal(false)} />
 
     <UsuariosModal isOpen={showUsuariosModal} onClose={() => setShowUsuariosModal(false)} />
+
+    <DadosParoquiaModal isOpen={showDadosParoquiaModal} onClose={() => setShowDadosParoquiaModal(false)} />
 
   </div>;
 };
