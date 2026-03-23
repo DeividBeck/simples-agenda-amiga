@@ -531,6 +531,11 @@ export const Dashboard = () => {
                     Gerenciar Usuários
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowDadosParoquiaModal(true)}>
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Dados da Paróquia
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
