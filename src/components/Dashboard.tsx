@@ -736,5 +736,7 @@ export const Dashboard = () => {
 
     <UsuariosModal isOpen={showUsuariosModal} onClose={() => setShowUsuariosModal(false)} />
 
+    <DadosParoquiaModal isOpen={showDadosParoquiaModal} onClose={() => setShowDadosParoquiaModal(false)} />
+
   </div>;
 };
