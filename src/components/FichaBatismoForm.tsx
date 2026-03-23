@@ -157,11 +157,8 @@ export const FichaBatismoForm: React.FC<FichaBatismoFormProps> = ({
         profissaoPai: values.profissaoPai || null
       };
 
-      // Fazer requisição sem token para endpoint público
-      const response = await fetchApi(`/${filialId}/FichaInscricaoBatismos`, undefined, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
+      // Fazer requisição para endpoint público
+      const response = await createInscricaoBatismo(filialId, payload);
 
       setUserEmail(values.email);
       setIsSuccess(true);
